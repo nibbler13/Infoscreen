@@ -1,0 +1,64 @@
+﻿<Window x:Class="Infoscreen.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Infoscreen"
+        mc:Ignorable="d"
+        Title="Infoscreen" 
+        Width="1024"
+        Height="768" 
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Franklin Gothic Book"
+        FontWeight="ExtraLight"
+        FontSize="50"
+        Foreground="#FF2D3D3F">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="15*"/>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="75*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="№ 201"
+                   HorizontalAlignment="Left"
+                   Margin="10, 10"
+                   VerticalAlignment="Center"
+                   FontWeight="Bold"
+                   FontFamily="Franklin Gothic"/>
+
+        <Image Source="Images/ButterflyClear.png" 
+               Margin="0,10,10,10"
+               HorizontalAlignment="Right"/>
+
+        <Border Grid.Row="1" 
+                Background="#FF3F64AE">
+            <TextBlock Text="Педиатрия"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="White"/>
+        </Border>
+
+        <Frame Grid.Row="2" 
+               Source="/Infoscreen;component/PageReceptionIsNotConducted.xaml" 
+               NavigationUIVisibility="Hidden"/>
+
+        <TextBlock Grid.Row="3"
+                   Text="Текущее время - 12:00"
+                   HorizontalAlignment="Center"
+                   Margin="0,10,0,10"
+                   FontSize="30"/>
+        
+        <Grid Grid.Row="4" Height="15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Image Grid.Column="0" Source="Images/BottomLineTemplate.png" Stretch="Fill"/>
+            <Image Grid.Column="1" Source="Images/BottomLineContinuesClear.png"/>
+        </Grid>
+    </Grid>
+</Window>
