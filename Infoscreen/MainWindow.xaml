@@ -6,59 +6,77 @@
         xmlns:local="clr-namespace:Infoscreen"
         mc:Ignorable="d"
         Title="Infoscreen" 
-        Width="1024"
-        Height="768" 
+        Width="1280"
+        Height="1024" 
         WindowStartupLocation="CenterScreen"
-        FontFamily="Franklin Gothic Book"
-        FontWeight="ExtraLight"
+        FontFamily="Franklin Gothic"
+        FontWeight="Light"
         FontSize="50"
-        Foreground="#FF2D3D3F">
+        Foreground="#FF2D3D3F"
+        WindowState="Normal" 
+        WindowStyle="None">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="15*"/>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="75*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="85*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="№ 201"
-                   HorizontalAlignment="Left"
-                   Margin="10, 10"
+        <WrapPanel Orientation="Horizontal" 
+                   Height="{Binding ElementName=TextBlockTimeHours,Path=ActualHeight}" 
+                   Margin="20,0,0,0"
+                   VerticalAlignment="Center"
+                   Grid.Row="0">
+            <Image Source="Images/Clock.png" 
+                   Margin="0,5,10,5"
+                   RenderOptions.BitmapScalingMode="HighQuality"/>
+
+            <TextBlock Text="00" 
+                       x:Name="TextBlockTimeHours"
+                       HorizontalAlignment="Right" 
+                       VerticalAlignment="Top"/>
+
+            <TextBlock Text=":" 
+                       x:Name="TextBlockTimeSplitter"
+                       HorizontalAlignment="Right" 
+                       VerticalAlignment="Top"/>
+
+            <TextBlock Text="00" 
+                       x:Name="TextBlockTimeMinutes"
+                       HorizontalAlignment="Right" 
+                       VerticalAlignment="Top"/>
+        </WrapPanel>
+
+        <TextBlock Text="Кабинет не выбран"
+                   Grid.Column="1"
+                   HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontWeight="Bold"
-                   FontFamily="Franklin Gothic"/>
+                   x:Name="TextBlockRoom"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Column="1"
+              VerticalAlignment="Bottom"
+                   HorizontalAlignment="Center"
+              x:Name="StackPanelPageIndicator"
+              Margin="0,0,0,10"/>
 
         <Image Source="Images/ButterflyClear.png" 
-               Margin="0,10,10,10"
-               HorizontalAlignment="Right"/>
+               Grid.Column="2"
+               VerticalAlignment="Center"
+               Margin="0,20,20,20"
+               HorizontalAlignment="Right">
+            <Image.Effect>
+                <DropShadowEffect Opacity="0.4"/>
+            </Image.Effect>
+        </Image>
 
-        <Border Grid.Row="1" 
-                Background="#FF3F64AE">
-            <TextBlock Text="Педиатрия"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Foreground="White"/>
-        </Border>
-
-        <Frame Grid.Row="2" 
-               Source="/Infoscreen;component/PageReceptionIsNotConducted.xaml" 
+        <Frame Grid.Row="1" 
+               Grid.ColumnSpan="3"
+               x:Name="FrameChair" 
                NavigationUIVisibility="Hidden"/>
-
-        <TextBlock Grid.Row="3"
-                   Text="Текущее время - 12:00"
-                   HorizontalAlignment="Center"
-                   Margin="0,10,0,10"
-                   FontSize="30"/>
-        
-        <Grid Grid.Row="4" Height="15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Image Grid.Column="0" Source="Images/BottomLineTemplate.png" Stretch="Fill"/>
-            <Image Grid.Column="1" Source="Images/BottomLineContinuesClear.png"/>
-        </Grid>
     </Grid>
 </Window>
