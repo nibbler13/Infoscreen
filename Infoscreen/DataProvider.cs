@@ -24,7 +24,7 @@ namespace Infoscreen {
 		public static void UpdateData() {
 			Console.WriteLine("UpdateData");
 			DataTable dataTable = firebirdClient.GetDataTable(sqlQuery, new Dictionary<string, object>() {
-				{ "@chairsList", chairsList} });
+				{ "@chairList", chairsList} });
 			ChairsDict.Clear();
 			if (dataTable.Rows.Count != 0) {
 
@@ -65,18 +65,27 @@ namespace Infoscreen {
 
 						if (dsinfo.Contains("|")) {
 							string[] docInfo = dsinfo.Split('|');
-							if (docInfo.Length == 4) {
-								ItemChair.Employee employee = new ItemChair.Employee() {
-									Name = docInfo[0],
-									Position = docInfo[1],
-									Department = docInfo[2],
-									WorkingTime = docInfo[3]
-								};
+							if (docInfo.Length == 5) {
+								string[] docNames = docInfo[0].Split('@');
+								string[] docPositions = docInfo[1].Split('@');
+								string[] docDepartments = docInfo[2].Split('@');
+								string workTime = docInfo[3];
+								string[] docRates = docInfo[4].Split('@');
 
-								if (!doctors.Contains(employee.Name))
-									doctors.Add(employee.Name);
+								for (int i = 0; i < docNames.Length; i++) {
+									ItemChair.Employee employee = new ItemChair.Employee() {
+										Name = docNames[i],
+										Position = docPositions[i],
+										Department = docDepartments[i],
+										WorkingTime = workTime,
+										Rating = docRates[i]
+									};
 
-								currentState.employees.Add(employee);
+									if (!doctors.Contains(employee.Name))
+										doctors.Add(employee.Name);
+
+									currentState.employees.Add(employee);
+								}
 							}
 						}
 
@@ -207,6 +216,7 @@ namespace Infoscreen {
 			public string Name { get; set; } = string.Empty;
 			public string Department { get; set; } = string.Empty;
 			public string WorkingTime { get; set; } = string.Empty;
+			public string Rating { get; set; } = string.Empty;
 		}
 	}
 }

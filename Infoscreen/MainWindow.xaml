@@ -14,6 +14,7 @@
         FontSize="50"
         Foreground="#FF2D3D3F"
         WindowState="Normal" 
+        Topmost="False"
         WindowStyle="None">
     <Grid>
         <Grid.ColumnDefinitions>

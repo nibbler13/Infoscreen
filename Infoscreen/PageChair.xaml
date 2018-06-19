@@ -47,61 +47,63 @@
             </Border>
 
             <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
+                <!--<Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
+                </Grid.ColumnDefinitions>-->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40*"/>
                     <RowDefinition Height="60*"/>
                 </Grid.RowDefinitions>
 
-                <Image Grid.Row="0"
-                       Grid.Column="0"
-                   Grid.RowSpan="1"
-                   Margin="20"
-                   Source="Images/DoctorWithoutAPhoto.png"
-                   VerticalAlignment="Center"
-                       HorizontalAlignment="Left"
-                   x:Name="ImageEmployee">
-                    <Image.Effect>
+                <StackPanel Orientation="Horizontal" Margin="20" HorizontalAlignment="Center" Background="#FFF4F4F4">
+                    <StackPanel.Effect>
                         <DropShadowEffect Opacity="0.4"/>
-                    </Image.Effect>
-                </Image>
+                    </StackPanel.Effect>
+                    <Image Source="Images/DoctorWithoutAPhoto.png"
+                           VerticalAlignment="Center"
+                           x:Name="ImageEmployee"
+                           Margin="20"/>
 
-                <StackPanel Grid.Row="0"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="1"
-                            Orientation="Vertical" 
+                    <StackPanel Orientation="Vertical" 
                             VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
                             Margin="20">
-                    <TextBlock Text="Врач-педиатр"
-                               HorizontalAlignment="Center"
-                               x:Name="TextBlockEmployeePosition"
-                               FontFamily="Franklin Gothic Book"/>
-                    
-                    <TextBlock Text="Иванов Иван Иванович"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"
-                               Margin="0,20,0,0"
-                               x:Name="TextBlockEmployeeName"
-                               TextWrapping="Wrap"
-                               FontFamily="Franklin Gothic Book"/>
+                        <TextBlock Text="Врач-педиатр"
+                                   HorizontalAlignment="Left"
+                                   x:Name="TextBlockEmployeePosition"
+                                   FontFamily="Franklin Gothic Book"
+                                   Foreground="Gray"
+                                   FontSize="40"/>
+
+                        <TextBlock Text="Иванов Иван Иванович"
+                                   HorizontalAlignment="Left"
+                                   TextAlignment="Center"
+                                   x:Name="TextBlockEmployeeName"
+                                   TextWrapping="Wrap"
+                                   FontFamily="Franklin Gothic Book"/>
 
 
-                    <TextBlock Text="Прием ведется с 9:00 до 21:00"
-                               Foreground="Gray"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               TextAlignment="Center"
-                               x:Name="TextBlockWorkingTime"
-                               TextWrapping="Wrap"
-                               Margin="0,20,0,0"
-                               FontFamily="Franklin Gothic Book"/>
+                        <TextBlock Text="Прием ведется с 9:00 до 21:00"
+                                   Foreground="Gray"
+                                   HorizontalAlignment="Left"
+                                   TextAlignment="Center"
+                                   x:Name="TextBlockWorkingTime"
+                                   TextWrapping="Wrap"
+                                   FontFamily="Franklin Gothic Book"
+                                   FontSize="40"/>
+                        
+                        <!--<TextBlock Text="Рейтинг наших пациентов:"
+                                   Foreground="Gray"
+                                   HorizontalAlignment="Left"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   FontFamily="Franklin Gothic Book"
+                                   FontSize="40"/>-->
+                    </StackPanel>
                 </StackPanel>
+
+                
 
                 <TextBlock Grid.Row="0"
                        Grid.RowSpan="2"
