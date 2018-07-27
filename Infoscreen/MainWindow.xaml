@@ -16,7 +16,7 @@
         WindowState="Normal" 
         Topmost="False"
         WindowStyle="None">
-    <Grid>
+    <Grid x:Name="GridRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="3*"/>
@@ -24,7 +24,8 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="15*"/>
-            <RowDefinition Height="85*"/>
+            <RowDefinition Height="50*"/>
+            <RowDefinition Height="35*"/>
         </Grid.RowDefinitions>
 
         <WrapPanel Orientation="Horizontal" 
@@ -77,7 +78,175 @@
 
         <Frame Grid.Row="1" 
                Grid.ColumnSpan="3"
+               Grid.RowSpan="2"
                x:Name="FrameChair" 
                NavigationUIVisibility="Hidden"/>
+        
+        <!--             -->
+        <!--Advertisement-->
+        <!--             -->
+
+        <StackPanel Orientation="Vertical"
+                    Grid.Row="2"
+                    Grid.ColumnSpan="3"
+                    VerticalAlignment="Bottom"
+                    Margin="0"
+                    x:Name="StackPanelAdvertisement"
+                    Opacity="0" 
+                    Visibility="Visible">
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="20,20,20,0">
+
+                <Image Source="Images/IconInfo.png"
+                       VerticalAlignment="Center"
+                       Width="40"
+                       Height="40"
+                       x:Name="ImageInfo"/>
+
+                <TextBlock Text="АКЦИЯ!"
+                           FontFamily="Franklin Gothic"
+                           x:Name="TextBlockAdvertisementTitle"
+                           Margin="20,0,0,0"/>
+            </StackPanel>
+
+            <TextBlock Text="Скидка 30% на отбеливание зубов, снятие и удаление зубного налета для лиц, старше 18 лет"
+                       TextWrapping="Wrap"
+                       FontFamily="Franklin Gothic Book"
+                       FontSize="40"
+                       Foreground="DarkSlateGray"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center" 
+                       Visibility="Visible"
+                       x:Name="TextBlockAdvertisementBody"
+                       Margin="20,0,20,10"/>
+
+            <TextBlock Text="Подробности Вы можете узнать на регистратуре"
+                       TextWrapping="Wrap"
+                       FontFamily="Franklin Gothic Book"
+                       FontSize="30"
+                       Foreground="Gray"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center" 
+                       Visibility="Visible"
+                       x:Name="TextBlockAdvertisementPostScriptum"
+                       Margin="20,10,20,20"/>
+        </StackPanel>
+
+        <!--                       -->
+        <!--Advertisement animation-->
+        <!--                       -->
+
+        <Border Grid.Row="2"
+                Grid.ColumnSpan="3"
+                x:Name="BorderAdvertisementFirstPart" 
+                HorizontalAlignment="Right"
+                Height="{Binding Path=ActualHeight,ElementName=StackPanelAdvertisement}"
+                VerticalAlignment="Bottom">
+
+            <Border.Background>
+                <LinearGradientBrush EndPoint="0,1" 
+                                     MappingMode="RelativeToBoundingBox" 
+                                     StartPoint="1,1">
+                    <GradientStop Color="Transparent"/>
+                    <GradientStop Color="#6600b5f4" 
+                                  Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Border.Triggers>
+                <EventTrigger RoutedEvent="local:MainWindow.ShowAdvertisement">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="StackPanelAdvertisement" 
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="0" 
+                                             To="1" 
+                                             Duration="0:0:2" 
+                                             BeginTime="0:0:0"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementFirstPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="0" 
+                                             To="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             Duration="0:0:5" 
+                                             BeginTime="0:0:2"
+                                             CurrentStateInvalidated="DoubleAnimation_CurrentStateInvalidated_Start"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementFirstPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             To="0" 
+                                             Duration="0:0:5" 
+                                             BeginTime="0:0:7"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementSecondPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="0" 
+                                             To="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             Duration="0:0:5"
+                                             BeginTime="0:0:7"
+                                             CurrentStateInvalidated="DoubleAnimation_CurrentStateInvalidated_Second"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementSecondPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             To="0" 
+                                             Duration="0:0:5" 
+                                             BeginTime="0:0:12"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementThirdPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="0" 
+                                             To="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             Duration="0:0:5" 
+                                             BeginTime="0:0:12"
+                                             CurrentStateInvalidated="DoubleAnimation_CurrentStateInvalidated_Third"/>
+
+                            <DoubleAnimation Storyboard.TargetName="BorderAdvertisementThirdPart" 
+                                             Storyboard.TargetProperty="Width"
+                                             From="{Binding Path=ActualWidth,ElementName=FrameChair}" 
+                                             To="0" 
+                                             Duration="0:0:5" 
+                                             BeginTime="0:0:17"/>
+
+                            <DoubleAnimation Storyboard.TargetName="StackPanelAdvertisement" 
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="1" 
+                                             To="0" 
+                                             Duration="0:0:2" 
+                                             BeginTime="0:0:22"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Border.Triggers>
+        </Border>
+
+        <Border Grid.Row="2"
+                Grid.ColumnSpan="3"
+                x:Name="BorderAdvertisementSecondPart" 
+                HorizontalAlignment="Right"
+                Background="#6600b5f4"
+                Height="{Binding Path=ActualHeight,ElementName=StackPanelAdvertisement}"
+                VerticalAlignment="Bottom"/>
+
+        <Border Grid.Row="2"
+                Grid.ColumnSpan="3"
+                x:Name="BorderAdvertisementThirdPart"
+                HorizontalAlignment="Right"
+                Height="{Binding Path=ActualHeight,ElementName=StackPanelAdvertisement}"
+                VerticalAlignment="Bottom">
+            
+            <Border.Background>
+                <LinearGradientBrush EndPoint="0,1" 
+                                     MappingMode="RelativeToBoundingBox"
+                                     StartPoint="1,1">
+                    <GradientStop Color="#6600b5f4"/>
+                    <GradientStop Color="Transparent" 
+                                  Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
     </Grid>
 </Window>

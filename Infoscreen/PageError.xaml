@@ -1,0 +1,72 @@
+﻿<Page x:Class="Infoscreen.PageError"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Infoscreen"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" 
+      d:DesignWidth="1200"
+      FontFamily="Franklin Gothic"
+      FontSize="50"
+      Title="PageError"
+      Foreground="#FF2D3D3F">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="12*"/>
+            <RowDefinition Height="88*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="#ffffffbf">
+            <Border.Effect>
+                <DropShadowEffect Opacity="0.4"/>
+            </Border.Effect>
+        </Border>
+
+        <TextBlock Grid.Row="0" 
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Уважаемые пациенты!"
+                   TextWrapping="Wrap"
+                   FontWeight="Bold"/>
+
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40*"/>
+                <RowDefinition Height="20*"/>
+                <RowDefinition Height="40*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Информация о состоянии кабинета&#x0a;временно недоступна&#x0a;по техническим причинам"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
+                       Margin="20,0"
+                       FontFamily="Franklin Gothic Book"/>
+            
+            <TextBlock Grid.Row="2"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Приносим извинения&#x0a;за доставленные неудобства"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       FontFamily="Franklin Gothic Book"/>
+
+            <Image Grid.Row="1" Source="Images/PicError.png"/>
+
+            <TextBlock Grid.Row="2"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Bottom"
+                   Text="Администрация"
+                       Margin="0,0,20,20"
+                       FontFamily="Franklin Gothic Book"
+                       FontSize="40"/>
+            
+            
+        </Grid>
+    </Grid>
+</Page>

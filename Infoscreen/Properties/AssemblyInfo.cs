@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("Infoscreen")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("ООО Клиника ЛМС")]
 [assembly: AssemblyProduct("Infoscreen")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCopyright("nn-admin ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -66,10 +66,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ConfigReader.cs" />
     <Compile Include="DataProvider.cs" />
     <Compile Include="FirebirdClient.cs" />
     <Compile Include="Logging.cs" />
-    <Compile Include="Mail.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -78,10 +78,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="PageError.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PageChair.xaml.cs">
       <DependentUpon>PageChair.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageError.xaml.cs">
+      <DependentUpon>PageError.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -128,6 +135,18 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Clock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\IconInfo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ServiceUnavailable.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\PicError.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\PicError.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
