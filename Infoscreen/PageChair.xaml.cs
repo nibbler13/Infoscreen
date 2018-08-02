@@ -39,10 +39,13 @@ namespace Infoscreen
 		}
 
 		private void UpdateState() {
-			ItemChair.StatusInfo statusInfo = DataProvider.ChairsDict[ChID].CurrentState;
 
-			if (!DataProvider.ChairsDict.ContainsKey(ChID))
-				statusInfo.Status = ItemChair.Status.NotConducted;
+			if (!DataProvider.ChairsDict.ContainsKey(ChID)) {
+				Logging.ToLog("PageChair - отсутствует chid " + ChID + " в результате запроса DataProvider, пропуск обновления");
+				return;
+			}
+
+			ItemChair.StatusInfo statusInfo = DataProvider.ChairsDict[ChID].CurrentState;
 
 			switch (statusInfo.Status) {
 				case ItemChair.Status.Free:
@@ -119,7 +122,7 @@ namespace Infoscreen
 
 			string state = string.Empty;
 
-			if (ConfigReader.LiveQueue)
+			if (ConfigReader.IsLiveQueue)
 				state = "Приём ведётся в порядке живой очереди";
 			else
 				switch (statusInfo.Status) {

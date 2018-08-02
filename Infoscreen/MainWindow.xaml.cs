@@ -73,7 +73,7 @@ namespace Infoscreen {
 			};
 			timerSeconds.Start();
 
-			if (!ConfigReader.ConfigReadedSuccessfull) {
+			if (!ConfigReader.IsConfigReadedSuccessfull) {
 				TextBlockRoom.Visibility = Visibility.Hidden;
 				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
 				FrameChair.Navigate(new PageError());
@@ -103,6 +103,7 @@ namespace Infoscreen {
 			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + ConfigReader.PauseBetweenAdvertisementsInSeconds);
 			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
 			timerShowAdvertisement.Start();
+			TimerShowAdvertisement_Tick(null, null);
 
 			DataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
 			DataProvider.UpdateData();
@@ -110,7 +111,7 @@ namespace Infoscreen {
 		}
 
 		private void TimerShowAdvertisement_Tick(object sender, EventArgs e) {
-			Logging.ToLog("Отображение рекламного сообщения");
+			Logging.ToLog("MainWindow - Отображение рекламного сообщения");
 
 			if (!ConfigReader.ShowAdvertisement) {
 				Logging.ToLog("MainWindow - пропуск отображения в соответствии с настройками");
@@ -122,23 +123,33 @@ namespace Infoscreen {
 				return;
 			}
 
-			if (ConfigReader.Advertisements.Count == 0) {
+			if (ConfigReader.AdvertisementItems.Count == 0) {
 				Logging.ToLog("MainWindow - пропуск отображения, т.к. отсутствуют доступные сообщения");
 				return;
 			}
 
-			Random random = new Random();
-			int advertisementIndexToShow = random.Next(0, ConfigReader.Advertisements.Count - 1);
+			try {
+				ConfigReader.ItemAdvertisement advertisement = ConfigReader.AdvertisementItems[ConfigReader.CurrentAdvertisementIndex];
+				ConfigReader.CurrentAdvertisementIndex++;
+				if (ConfigReader.CurrentAdvertisementIndex == ConfigReader.AdvertisementItems.Count)
+					ConfigReader.CurrentAdvertisementIndex = 0;
 
-			ConfigReader.ItemAdvertisement advertisement = ConfigReader.Advertisements[advertisementIndexToShow];
-			TextBlockAdvertisementTitle.Text = advertisement.Title;
-			TextBlockAdvertisementBody.Text = advertisement.Body;
-			TextBlockAdvertisementPostScriptum.Text = advertisement.PostScriptum;
+				TextBlockAdvertisementTitle.Text = advertisement.Title;
+				TextBlockAdvertisementBody.Text = advertisement.Body;
+				TextBlockAdvertisementPostScriptum.Text = advertisement.PostScriptum;
 
-			Logging.ToLog("MainWindow - Отображение сообщения: " + advertisement.Title + ", " + 
-				advertisement.Body + ", " + advertisement.PostScriptum);
+				DocPanelAdvertisementTitle.Visibility = string.IsNullOrEmpty(advertisement.Title) ? Visibility.Collapsed : Visibility.Visible;
+				ImageBodyIcon.Visibility = string.IsNullOrEmpty(advertisement.Title) ? Visibility.Visible : Visibility.Collapsed;
+				TextBlockAdvertisementBody.Visibility = string.IsNullOrEmpty(advertisement.Body) ? Visibility.Collapsed : Visibility.Visible;
+				TextBlockAdvertisementPostScriptum.Visibility = string.IsNullOrEmpty(advertisement.PostScriptum) ? Visibility.Collapsed : Visibility.Visible;
 
-			RaiseShowAdvertisementEvent();
+				Logging.ToLog("MainWindow - Отображение сообщения: " + advertisement.Title + ", " +
+					advertisement.Body + ", " + advertisement.PostScriptum);
+
+				RaiseShowAdvertisementEvent();
+			} catch (Exception exc) {
+				Logging.ToLog("MainWindow - " + exc.Message + Environment.NewLine + exc.StackTrace);
+			}
 		}
 
 		private void DataProvider_OnUpdateCompleted(object sender, EventArgs e) {
@@ -217,9 +228,7 @@ namespace Infoscreen {
 			chairPages[pageToShow].Height = 10;
 			FrameChair.Navigate(pageToShow);
 		}
-
-
-
+		
 		private void DoubleAnimation_CurrentStateInvalidated_Start(object sender, EventArgs e) {
 			BorderAdvertisementFirstPart.HorizontalAlignment = 
 				BorderAdvertisementFirstPart.HorizontalAlignment == HorizontalAlignment.Left ?

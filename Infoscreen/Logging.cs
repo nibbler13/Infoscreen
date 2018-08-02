@@ -4,14 +4,18 @@ using System.Linq;
 using System.Reflection;
 
 namespace Infoscreen {
-	class Logging {
+	public class Logging {
 		private static string LOG_FILE_NAME = Assembly.GetExecutingAssembly().GetName().Name + "_*.log";
-		private static readonly string ASSEMBLY_DIRECTORY = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
+		public static readonly string ASSEMBLY_DIRECTORY = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\";
 		private const int MAX_LOGFILES_QUANTITY = 7;
 
-		public static void ToLog(string msg) {
+		public static string GetCurrentLogFileName() {
 			string today = DateTime.Now.ToString("yyyyMMdd");
-			string logFileName = Path.Combine(ASSEMBLY_DIRECTORY, LOG_FILE_NAME.Replace("*", today));
+			return Path.Combine(ASSEMBLY_DIRECTORY, LOG_FILE_NAME.Replace("*", today));
+		}
+
+		public static void ToLog(string msg) {
+			string logFileName = GetCurrentLogFileName();
 
 			try {
 				using (System.IO.StreamWriter sw = System.IO.File.AppendText(logFileName)) {

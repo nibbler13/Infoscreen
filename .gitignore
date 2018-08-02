@@ -262,3 +262,5 @@ __pycache__/
 *.settings
 Infoscreen/Properties/Settings.Designer.cs
 *.config
+InfoscreenAdvertisementManager/Properties/Settings.Designer.cs
+InfoscreenConfigManager/Properties/Settings.Designer.cs

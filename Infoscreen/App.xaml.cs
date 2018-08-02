@@ -20,7 +20,7 @@ namespace Infoscreen {
 			} else
 				ConfigReader.ReadConfigFile(e.Args[0].ToString());
 
-			if (!ConfigReader.ConfigReadedSuccessfull)
+			if (!ConfigReader.IsConfigReadedSuccessfull)
 				Logging.ToLog("App - Не удалось корректно прочитать файл с настройками");
 
 			MainWindow window = new MainWindow();

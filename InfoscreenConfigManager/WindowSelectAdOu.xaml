@@ -1,0 +1,35 @@
+﻿<Window x:Class="InfoscreenConfigManager.WindowSelectAdOu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InfoscreenConfigManager"
+        mc:Ignorable="d"
+        Title="Выбор подразделения ActiveDirectory" 
+        Height="500" 
+        Width="400"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Выберите подразделение из списка:"/>
+        
+        <TreeView TreeViewItem.Expanded="TreeViewMain_Expanded"
+                  x:Name="TreeViewMain"
+                  Grid.Row="1"
+                  SelectedItemChanged="TreeViewMain_SelectedItemChanged"
+                  Margin="6"/>
+
+        <Button Content="Ок"
+                Grid.Row="2"
+                x:Name="ButtonSelect" 
+                IsEnabled="False"
+                Click="ButtonSelect_Click"
+                Width="80"/>
+
+    </Grid>
+</Window>
