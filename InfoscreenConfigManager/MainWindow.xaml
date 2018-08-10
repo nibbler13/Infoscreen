@@ -6,10 +6,10 @@
         xmlns:local="clr-namespace:InfoscreenConfigManager"
         mc:Ignorable="d"
         Title="Infoscreen Config Manager" 
-        Height="800" 
-        Width="500"
-        MinWidth="500"
-        MinHeight="800"
+        Height="600" 
+        Width="800"
+        MinHeight="600"
+        MinWidth="800"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="10">
         <TextBlock x:Name="TextBlockMain"

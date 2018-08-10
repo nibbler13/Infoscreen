@@ -1,38 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Xml;
 
 namespace Infoscreen {
-    public static class ConfigReader {
-		static public int DatabaseQueryExecutionIntervalInSeconds { get; private set; }
-		static public int DoctorsPhotoUpdateIntervalInSeconds { get; private set; }
-		static public int ChairPagesRotateIntervalInSeconds { get; private set; }
-		static public int TimetableRotateIntervalInSeconds { get; private set; }
-		static public string PhotosFolderPath { get; private set; }
-		static public string DataBaseCopyAddress { get; private set; }
-		static public string DataBaseAddress { get; private set; }
-		static public string DataBaseName { get; private set; }
-		static public string DataBaseUserName { get; private set; }
-		static public string DataBasePassword { get; private set; }
-		static public string DataBaseQuery { get; private set; }
-		static public string Chairs { get; private set; }
-		static public bool IsLiveQueue { get; private set; }
-		static public bool IsTimetable { get; private set; }
-		static public bool IsConfigReadedSuccessfull { get; private set; }
-		static public bool ShowAdvertisement { get; private set; }
-		static public int PauseBetweenAdvertisementsInSeconds { get; private set; }
-		static public List<ItemAdvertisement> AdvertisementItems { get; private set; } = new List<ItemAdvertisement>();
-		static private string ConfigFilePath { get; set; }
-		static public int CurrentAdvertisementIndex { get; set; }
-		static public string ActiveDirectoryOU { get; private set; }
-		static public List<ItemSystem> SystemItems { get; private set; } = new List<ItemSystem>();
+    public class ConfigReader {
+		public int DatabaseQueryExecutionIntervalInSeconds { get; set; }
+		public int DoctorsPhotoUpdateIntervalInSeconds { get; set; }
+		public int ChairPagesRotateIntervalInSeconds { get; set; }
+		public int TimetableRotateIntervalInSeconds { get; set; }
+		public string PhotosFolderPath { get; set; }
+		public string DataBaseCopyAddress { get; set; }
+		public string DataBaseAddress { get; set; }
+		public string DataBaseName { get; set; }
+		public string DataBaseUserName { get; set; }
+		public string DataBasePassword { get; set; }
+		public string DataBaseQuery { get; set; }
+		public string Chairs { get; set; }
+		public bool IsLiveQueue { get; set; }
+		public bool IsTimetable { get; set; }
+		public bool IsConfigReadedSuccessfull { get; set; }
+		public bool ShowAdvertisement { get; set; }
+		public int PauseBetweenAdvertisementsInSeconds { get; set; }
+
+		public List<ItemAdvertisement> AdvertisementItems { get; set; } =
+			new List<ItemAdvertisement>();
+
+		private string ConfigFilePath { get; set; }
+		public int CurrentAdvertisementIndex { get; set; }
+		public string ActiveDirectoryOU { get; set; }
+
+		public List<ItemSystem> SystemItems { get; set; } = 
+			new List<ItemSystem>();
+
+
+
+
+		public void InitializeConfig(string dataBaseUserName, string dataBaseUserPassword, string dataBaseSqlQuery) {
+			ChairPagesRotateIntervalInSeconds = 15;
+			TimetableRotateIntervalInSeconds = 30;
+			DoctorsPhotoUpdateIntervalInSeconds = 3600;
+			DatabaseQueryExecutionIntervalInSeconds = 15;
+			DataBaseUserName = dataBaseUserName;
+			DataBasePassword = dataBaseUserPassword;
+			DataBaseQuery = dataBaseSqlQuery;
+		}
 		
-		static public void ReadConfigFile(string configFilePath, bool setTimerForUpdateAd = true) {
+		public void ReadConfigFile(string configFilePath, bool setTimerForUpdateAd = true) {
 			Logging.ToLog("ConfigReader - Считывание настроек из файла: " + configFilePath);
 
 			ConfigFilePath = configFilePath;
@@ -43,7 +64,7 @@ namespace Infoscreen {
 				return;
 			}
 
-			XmlDocument xmlDocument = GetConfig();
+			XmlDocument xmlDocument = LoadConfig();
 			if (xmlDocument == null) {
 				IsConfigReadedSuccessfull = false;
 				return;
@@ -79,6 +100,8 @@ namespace Infoscreen {
 				foreach (XmlNode xmlNode in xmlNodeList)
 					SystemItems.Add(ReadSystemNode(xmlNode));
 
+				DispatcherTimerAdvertisements_Tick(null, null);
+
 				return;
 			}
 
@@ -86,7 +109,7 @@ namespace Infoscreen {
 			XmlNode nodeComputer = xmlDocument.SelectSingleNode("//computer[@name='" + compName + "']");
 			if (nodeComputer != null) {
 				ItemSystem itemSystem = ReadSystemNode(nodeComputer);
-				Chairs = itemSystem.Chairs;
+				Chairs = string.Join(",", itemSystem.ChairItems.Select(x => x.ChairID).ToArray());
 				IsLiveQueue = itemSystem.IsLiveQueue;
 			} else
 				Logging.ToLog("ConfigReader - Не удалось найти элемент для текущей системы " + compName);
@@ -105,8 +128,25 @@ namespace Infoscreen {
 				itemSystem.SystemName = xmlNode.Attributes["name"].Value;
 
 				XmlNode nodeChairs = xmlNode["chairs"];
-				if (nodeChairs != null)
-					itemSystem.Chairs = nodeChairs.InnerText;
+				if (nodeChairs != null) {
+					string[] chairs = nodeChairs.InnerText.Split('@');
+					foreach (string chair in chairs) {
+						string[] chairDetails = chair.Split('|');
+						if (chairDetails.Length != 4) {
+							Console.WriteLine("Длина строки с креслом не равна 4 элементам, пропуск: " + chair);
+							continue;
+						}
+
+						ItemChair itemChair = new ItemChair() {
+							ChairID = chairDetails[0],
+							ChairName = chairDetails[1],
+							RoomNumber = chairDetails[2],
+							RoomName = chairDetails[3]
+						};
+
+						itemSystem.ChairItems.Add(itemChair);
+					}
+				}
 
 				XmlNode nodeLiveQueue = xmlNode["liveQueue"];
 				if (nodeLiveQueue != null)
@@ -122,7 +162,7 @@ namespace Infoscreen {
 			return itemSystem;
 		}
 
-		private static XmlDocument GetConfig() {
+		private XmlDocument LoadConfig() {
 			XmlDocument xmlDocument = new XmlDocument();
 
 			try {
@@ -142,12 +182,12 @@ namespace Infoscreen {
 			return xmlDocument;
 		}
 
-		private static void DispatcherTimerAdvertisements_Tick(object sender, EventArgs e) {
+		private void DispatcherTimerAdvertisements_Tick(object sender, EventArgs e) {
 			Logging.ToLog("ConfigReader - " + "Считывание информации о рекламных сообщениях");
 
 			AdvertisementItems.Clear();
 
-			XmlDocument xmlDocument = GetConfig();
+			XmlDocument xmlDocument = LoadConfig();
 			if (xmlDocument == null)
 				return;
 
@@ -215,7 +255,7 @@ namespace Infoscreen {
 			CurrentAdvertisementIndex = 0;
 		}
 
-		static private string GetChildInnerText(XmlDocument xmlDocument, string xPath) {
+		private string GetChildInnerText(XmlDocument xmlDocument, string xPath) {
 			Logging.ToLog("ConfigReader - Считывание значения для элемента: " + xPath);
 			XmlNode xmlNode = xmlDocument.SelectSingleNode(xPath);
 
@@ -227,18 +267,53 @@ namespace Infoscreen {
 			return xmlNode.InnerText;
 		}
 
-		public class ItemSystem {
+		public class ItemSystem : INotifyPropertyChanged {
+			public event PropertyChangedEventHandler PropertyChanged;
+			private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			}
+			
 			public string SystemName { get; set; } = string.Empty;
-			public string Chairs { get; set; } = string.Empty;
-			public bool IsLiveQueue { get; set; } = false;
-			public bool IsTimetable { get; set; } = false;
+			public string SystemUnit { get; set; } = string.Empty;
+
+			private bool isLiveQueue = false;
+			public bool IsLiveQueue {
+				get { return isLiveQueue; }
+				set {
+					if (value != isLiveQueue) {
+						isLiveQueue = value;
+						NotifyPropertyChanged();
+					}
+				}
+			}
+
+			private bool isTimetable = false;
+			public bool IsTimetable {
+				get { return isTimetable; }
+				set {
+					if (value != isTimetable) {
+						isTimetable = value;
+						NotifyPropertyChanged();
+					}
+				}
+			}
+
+			public ObservableCollection<ItemChair> ChairItems { get; set; } = 
+				new ObservableCollection<ItemChair>();
+		}
+
+		public class ItemChair {
+			public string ChairID { get; set; } = string.Empty;
+			public string ChairName { get; set; } = string.Empty;
+			public string RoomNumber { get; set; } = string.Empty;
+			public string RoomName { get; set; } = string.Empty;
 		}
 
 		public class ItemAdvertisement {
 			public string Title { get; set; } = string.Empty;
 			public string Body { get; set; } = string.Empty;
 			public string PostScriptum { get; set; } = string.Empty;
-			public int OrderNumber { get; private set; }
+			public int OrderNumber { get; set; }
 
 			public ItemAdvertisement() {
 				Random random = new Random();

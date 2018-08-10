@@ -1,0 +1,147 @@
+﻿<Window x:Class="InfoscreenConfigManager.WindowEditSystemChairs"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:InfoscreenConfigManager"
+        mc:Ignorable="d"
+        Title="Выбор кресел для системы: " 
+        WindowStartupLocation="CenterOwner"
+        Height="600" 
+        Width="500"
+        MinHeight="600"
+        MinWidth="500">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Grid.Column="2" Margin="0,6,0,0">
+            <TextBlock Text="Фильтр по номеру:"/>
+            <TextBox Margin="6,0,0,0" 
+                     x:Name="TextBoxFilterByRoomNumber" 
+                     Text="{Binding SearchByRoomNumber, UpdateSourceTrigger=PropertyChanged}"/>
+        </DockPanel>
+
+        <DataGrid Grid.Row="1" 
+                  Grid.Column="2"
+                  Margin="0,6,0,0"
+                  ItemsSource="{Binding ChairItemsView}"
+                  AutoGenerateColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  x:Name="DataGridItemChairs"
+                  HorizontalGridLinesBrush="#FFC8C8C8"
+                  VerticalGridLinesBrush="#FFC8C8C8"
+                  SelectionMode="Single"
+                  SelectionUnit="FullRow"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HeadersVisibility="Column"
+                  MouseDoubleClick="DataGridItemChairs_MouseDoubleClick"
+                  SelectionChanged="DataGridItemChairs_SelectionChanged">
+            
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding RoomNumber}" 
+                                    Header="№ кабинета" 
+                                    IsReadOnly="True"/>
+                
+                <DataGridTextColumn Binding="{Binding RoomName}"
+                                    Header="Имя кабинета" 
+                                    IsReadOnly="True"/>
+                
+                <DataGridTextColumn Binding="{Binding ChairName}"
+                                    Header="Имя кресла"
+                                    IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <GridSplitter Grid.Row="2" 
+                      ResizeBehavior="PreviousAndNext" 
+                      ResizeDirection="Rows"
+                      Height="3"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"/>
+
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <WrapPanel HorizontalAlignment="Center">
+                <Button Content="↓" 
+                        Width="20"
+                        x:Name="ButtonToSelectedOne"
+                        IsEnabled="False"
+                        Click="ButtonToSelectedOne_Click"/>
+                
+                <Button Content="↓↓" 
+                        Width="20"
+                        Margin="6,0,6,0"
+                        x:Name="ButtonToSelectedAll"
+                        IsEnabled="False"
+                        Click="ButtonToSelectedAll_Click"/>
+                
+                <Button Content="↑↑" 
+                        Width="20"
+                        x:Name="ButtonFromSelectedAll"
+                        Click="ButtonFromSelectedAll_Click"
+                        IsEnabled="False"/>
+                
+                <Button Content="↑"
+                        Width="20"
+                        Margin="6,0,0,0"
+                        x:Name="ButtonFromSelectedOne"
+                        Click="ButtonFromSelectedOne_Click"
+                        IsEnabled="False"/>
+            </WrapPanel>
+
+            <TextBlock Text="Выбранные кресла:"
+                       Grid.Row="1"
+                       Margin="0,0,0,6"/>
+
+            <DataGrid Grid.Row="2" 
+                      ItemsSource="{Binding SelectedChairItems}"
+                      AutoGenerateColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      x:Name="DataGridSelectedItemChairs"
+                      HorizontalGridLinesBrush="#FFC8C8C8"
+                      VerticalGridLinesBrush="#FFC8C8C8"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      HeadersVisibility="Column"
+                      MouseDoubleClick="DataGridSelectedItemChairs_MouseDoubleClick"
+                      SelectionChanged="DataGridSelectedItemChairs_SelectionChanged">
+                
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding RoomNumber}"
+                                        Header="№ кабинета"
+                                        IsReadOnly="True"/>
+                    
+                    <DataGridTextColumn Binding="{Binding RoomName}" 
+                                        Header="Имя кабинета"
+                                        IsReadOnly="True"/>
+                    
+                    <DataGridTextColumn Binding="{Binding ChairName}"
+                                        Header="Имя кресла" 
+                                        IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <Button Content="Ок"
+                Grid.Row="5"
+                Grid.ColumnSpan="3"
+                Width="80"
+                x:Name="ButtonOk"
+                Click="ButtonOk_Click"
+                Margin="0,10,0,0"/>
+    </Grid>
+</Window>

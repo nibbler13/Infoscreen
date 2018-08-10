@@ -21,15 +21,19 @@ namespace Infoscreen
     public partial class PageChair : Page {
 		private string ChID { get; set; }
 		public string RNum { get; private set; }
+		private bool isLiveQueue;
+		private DataProvider dataProvider;
 		
-        public PageChair(string chid, string rnum) {
+        public PageChair(string chid, string rnum, bool isLiveQueue, DataProvider dataProvider) {
 			Logging.ToLog("PageChair - Создание страницы кресла, chid - " + chid + ", rnum - " + rnum);
             InitializeComponent();
 
 			ChID = chid;
 			RNum = rnum;
+			this.isLiveQueue = isLiveQueue;
+			this.dataProvider = dataProvider;
 			
-			DataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
+			dataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
 			UpdateState();
         }
 
@@ -39,13 +43,12 @@ namespace Infoscreen
 		}
 
 		private void UpdateState() {
-
-			if (!DataProvider.ChairsDict.ContainsKey(ChID)) {
+			if (!dataProvider.ChairsDict.ContainsKey(ChID)) {
 				Logging.ToLog("PageChair - отсутствует chid " + ChID + " в результате запроса DataProvider, пропуск обновления");
 				return;
 			}
 
-			ItemChair.StatusInfo statusInfo = DataProvider.ChairsDict[ChID].CurrentState;
+			ItemChair.StatusInfo statusInfo = dataProvider.ChairsDict[ChID].CurrentState;
 
 			switch (statusInfo.Status) {
 				case ItemChair.Status.Free:
@@ -77,7 +80,7 @@ namespace Infoscreen
 				TextBlockEmployeeName.Text = employee.Name;
 				TextBlockEmployeePosition.Text = employee.Position;
 				TextBlockWorkingTime.Text = "Приём ведётся с " + employee.WorkingTime;
-				string photo = DataProvider.GetImageForDoctor(employee.Name);
+				string photo = dataProvider.GetImageForDoctor(employee.Name);
 
 				if (string.IsNullOrEmpty(photo)) {
 					var logo = new BitmapImage();
@@ -122,7 +125,7 @@ namespace Infoscreen
 
 			string state = string.Empty;
 
-			if (ConfigReader.IsLiveQueue)
+			if (isLiveQueue)
 				state = "Приём ведётся в порядке живой очереди";
 			else
 				switch (statusInfo.Status) {

@@ -14,16 +14,15 @@ namespace Infoscreen {
 		private void Application_Startup(object sender, StartupEventArgs e) {
 			Logging.ToLog("App - ===== Запуск приложения");
 
+			string configFilePath = string.Empty;
+
 			if (e.Args.Length != 1) {
 				Logging.ToLog("App - Количество переданных параметров не равно одному, " +
 					"пропуск считывания файла с настройками");
 			} else
-				ConfigReader.ReadConfigFile(e.Args[0].ToString());
+				configFilePath = e.Args[0].ToString();
 
-			if (!ConfigReader.IsConfigReadedSuccessfull)
-				Logging.ToLog("App - Не удалось корректно прочитать файл с настройками");
-
-			MainWindow window = new MainWindow();
+			MainWindow window = new MainWindow(configFilePath);
 			window.Show();
 		}
 	}

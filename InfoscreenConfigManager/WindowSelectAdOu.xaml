@@ -22,7 +22,7 @@
                   x:Name="TreeViewMain"
                   Grid.Row="1"
                   SelectedItemChanged="TreeViewMain_SelectedItemChanged"
-                  Margin="6"/>
+                  Margin="0,6,0,6"/>
 
         <Button Content="Ок"
                 Grid.Row="2"

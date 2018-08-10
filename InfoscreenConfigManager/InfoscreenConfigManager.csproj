@@ -64,6 +64,9 @@
     <Compile Include="WindowSelectAdOu.xaml.cs">
       <DependentUpon>WindowSelectAdOu.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WindowEditSystemChairs.xaml.cs">
+      <DependentUpon>WindowEditSystemChairs.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -85,6 +88,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WindowSelectAdOu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowEditSystemChairs.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

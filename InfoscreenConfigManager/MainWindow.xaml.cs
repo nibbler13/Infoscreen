@@ -24,15 +24,21 @@ namespace InfoscreenConfigManager {
 			Loaded += MainWindow_Loaded;
 		}
 
-		private void MainWindow_Loaded(object sender, RoutedEventArgs e) {
+		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
 			string currentConfig = Infoscreen.Logging.ASSEMBLY_DIRECTORY + "InfoscreenConfig.xml";
 			TextBlockMain.Text = "Считывание файла конфигурации: " + currentConfig;
-			Infoscreen.ConfigReader.ReadConfigFile(currentConfig, false);
+
+			Infoscreen.ConfigReader configReader = new Infoscreen.ConfigReader();
+
+			await Task.Run(() => {
+				configReader.ReadConfigFile(currentConfig, false);
+			});
+
 			TextBlockMain.Visibility = Visibility.Hidden;
 			FrameMain.Visibility = Visibility.Visible;
 
-			if (Infoscreen.ConfigReader.IsConfigReadedSuccessfull) {
-				PageConfigView pageConfigView = new PageConfigView(currentConfig);
+			if (configReader.IsConfigReadedSuccessfull) {
+				PageConfigView pageConfigView = new PageConfigView(configReader);
 				FrameMain.Navigate(pageConfigView);
 			} else {
 				PageConfigNotFound pageConfigNotFound = new PageConfigNotFound();

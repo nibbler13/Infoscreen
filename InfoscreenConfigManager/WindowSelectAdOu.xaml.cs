@@ -39,16 +39,19 @@ namespace InfoscreenConfigManager {
 			return item;
 		}
 
-		private void WindowSelectAdOu_Loaded(object sender, RoutedEventArgs e) {
+		private async void WindowSelectAdOu_Loaded(object sender, RoutedEventArgs e) {
 			List<ActiveDirectoryOu> list = new List<ActiveDirectoryOu>();
-			GetChildrenOu(string.Empty, ref list);
+
+			await Task.Run(() => {
+				GetChildrenOu(string.Empty, ref list);
+			});
 
 			foreach (ActiveDirectoryOu item in list)
 				TreeViewMain.Items.Add(CreateTreeItem(item));
 
 			if (string.IsNullOrEmpty(previousSelectedOU))
 				return;
-			
+
 			FindParentFromDN(TreeViewMain.Items);
 		}
 
@@ -84,8 +87,8 @@ namespace InfoscreenConfigManager {
 
 					foreach (SearchResult resEnt in mySearcher.FindAll()) {
 						try {
-							string name = resEnt.GetDirectoryEntry().Properties["name"].Value.ToString();
-							string dn = resEnt.GetDirectoryEntry().Properties["distinguishedName"].Value.ToString();
+							string name = resEnt.Properties["name"][0].ToString();
+							string dn = resEnt.Properties["distinguishedName"][0].ToString();
 
 							list.Add(new ActiveDirectoryOu() { Name = name, DistinguishedName = dn });
 						} catch (Exception exc) {

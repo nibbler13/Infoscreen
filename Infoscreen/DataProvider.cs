@@ -8,25 +8,38 @@ using System.Threading.Tasks;
 using System.Windows;
 
 namespace Infoscreen {
-	static class DataProvider {
-		public static Dictionary<string, ItemChair> ChairsDict { get; private set; } = new Dictionary<string, ItemChair>();
+	public class DataProvider {
+		public Dictionary<string, ItemChair> ChairsDict { get; private set; } = new Dictionary<string, ItemChair>();
+		private readonly ConfigReader configReader;
+		private FirebirdClient firebirdClient;
 
-		private static List<string> doctors = new List<string>();
-		private static int previousDay = DateTime.Now.Day;
-		private static FirebirdClient firebirdClient = new FirebirdClient(
-				ConfigReader.DataBaseAddress,
-				ConfigReader.DataBaseName,
-				ConfigReader.DataBaseUserName,
-				ConfigReader.DataBasePassword);
+		private List<string> doctors = new List<string>();
+		private int previousDay = DateTime.Now.Day;
 
-		public static event EventHandler OnUpdateCompleted = delegate { };
-		public static bool IsUpdateSuccessfull { get; private set; }
+		public event EventHandler OnUpdateCompleted = delegate { };
+		public bool IsUpdateSuccessfull { get; private set; }
 
-		public static void UpdateData() {
+
+
+
+
+		public DataProvider(ConfigReader configReader) {
+			this.configReader = configReader;
+			firebirdClient = new FirebirdClient(
+				configReader.DataBaseAddress,
+				configReader.DataBaseName,
+				configReader.DataBaseUserName,
+				configReader.DataBasePassword);
+		}
+
+
+
+
+		public void UpdateData() {
 			Logging.ToLog("DataProvider - Обновление данных");
 
-			DataTable dataTable = firebirdClient.GetDataTable(ConfigReader.DataBaseQuery, 
-				new Dictionary<string, object>() { { "@chairList", ConfigReader.Chairs } });
+			DataTable dataTable = firebirdClient.GetDataTable(configReader.DataBaseQuery, 
+				new Dictionary<string, object>() { { "@chairList", configReader.Chairs } });
 			ChairsDict.Clear();
 
 			Logging.ToLog("DataProvider - Получено строк - " + dataTable.Rows.Count);
@@ -124,10 +137,10 @@ namespace Infoscreen {
 			Application.Current.Shutdown();
 		}
 
-		public static void UpdateDoctorsPhoto() {
+		public void UpdateDoctorsPhoto() {
 			Logging.ToLog("DataProvider - Обновление фотографий сотрудников");
 
-			string searchPath = ConfigReader.PhotosFolderPath;
+			string searchPath = configReader.PhotosFolderPath;
 			string destinationPath = Directory.GetCurrentDirectory() + "\\DoctorsPhotos\\";
 			if (!Directory.Exists(destinationPath))
 				Directory.CreateDirectory(destinationPath);
@@ -172,7 +185,7 @@ namespace Infoscreen {
 			}
 		}
 
-		public static string GetImageForDoctor(string name) {
+		public string GetImageForDoctor(string name) {
 			Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + name);
 
 			try {

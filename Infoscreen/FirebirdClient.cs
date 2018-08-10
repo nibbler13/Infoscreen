@@ -20,7 +20,13 @@ namespace Infoscreen {
 				Pooling = false
 			};
 
-			connection = new FbConnection(cs.ToString());
+			if (string.IsNullOrEmpty(ipAddress) ||
+				string.IsNullOrEmpty(baseName) ||
+				string.IsNullOrEmpty(user))
+				connection = new FbConnection();
+			else
+				connection = new FbConnection(cs.ToString());
+
 			IsConnectionOpened();
 		}
 
@@ -28,6 +34,10 @@ namespace Infoscreen {
 			Logging.ToLog("FirebirdClient - Отключение от БД");
 
 			connection.Close();
+		}
+
+		public bool IsDbAvailable() {
+			return GetDataTable("select date 'Now' from rdb$database", new Dictionary<string, object>()).Rows.Count == 1;
 		}
 
 		private bool IsConnectionOpened() {
@@ -56,11 +66,10 @@ namespace Infoscreen {
 			
 			try {
 				using (FbCommand command = new FbCommand(query, connection)) { 
-
-				if (parameters.Count > 0) {
-					foreach (KeyValuePair<string, object> parameter in parameters)
-						command.Parameters.AddWithValue(parameter.Key, parameter.Value);
-				}
+					if (parameters.Count > 0) {
+						foreach (KeyValuePair<string, object> parameter in parameters)
+							command.Parameters.AddWithValue(parameter.Key, parameter.Value);
+					}
 
 					using (FbDataAdapter fbDataAdapter = new FbDataAdapter(command)) {
 						fbDataAdapter.Fill(dataTable);

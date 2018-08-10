@@ -33,6 +33,87 @@ namespace Infoscreen {
 			remove { RemoveHandler(ShowAdvertisementEvent, value); }
 		}
 
+		private string configFilePath;
+		private ConfigReader configReader;
+		private DataProvider dataProvider;
+
+
+		public MainWindow(string configFilePath) {
+			Logging.ToLog("MainWindow - Создание основного окна приложения");
+
+			InitializeComponent();
+			this.configFilePath = configFilePath;
+
+			PreviewKeyDown += (s, e) => {
+				if (e.Key.Equals(Key.Escape)) {
+					Logging.ToLog("MainWindow - ===== Завершение работы по нажатию клавиши ESC");
+					Application.Current.Shutdown();
+				}
+			};
+
+			Loaded += MainWindow_Loaded;
+		}
+
+		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
+			await Task.Run(() => {
+				configReader = new ConfigReader();
+				configReader.ReadConfigFile(configFilePath);
+			});
+
+			DispatcherTimer timerSecondsTick = new DispatcherTimer();
+			timerSecondsTick.Interval = TimeSpan.FromSeconds(1);
+			timerSecondsTick.Tick += (s, ev) => {
+				Application.Current.Dispatcher.Invoke((Action)delegate {
+					TextBlockTimeSplitter.Visibility =
+						TextBlockTimeSplitter.Visibility == Visibility.Visible ?
+						Visibility.Hidden : Visibility.Visible;
+					TextBlockTimeHours.Text = DateTime.Now.Hour.ToString();
+					TextBlockTimeMinutes.Text = DateTime.Now.ToString("mm");
+				});
+			};
+			timerSecondsTick.Start();
+
+			if (!configReader.IsConfigReadedSuccessfull) {
+				TextBlockRoom.Visibility = Visibility.Hidden;
+				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
+				FrameChair.Navigate(new PageError());
+				return;
+			}
+
+			if (string.IsNullOrEmpty(configReader.Chairs)) {
+				TextBlockRoom.Text = "Кабинет не выбран";
+				Logging.ToLog("MainWindow - Не заполнен список кабинок");
+				return;
+			}
+
+			dataProvider = new DataProvider(configReader);
+
+			Logging.ToLog("MainWindow - Запуск таймера обновления данных");
+			DispatcherTimer timerUpdateData = new DispatcherTimer();
+			timerUpdateData.Interval = TimeSpan.FromSeconds(configReader.DatabaseQueryExecutionIntervalInSeconds);
+			timerUpdateData.Tick += (s, ev) => { dataProvider.UpdateData(); };
+			timerUpdateData.Start();
+
+			Logging.ToLog("MainWindow - Запуск таймера обновления фотографий");
+			DispatcherTimer timerUpdatePhotos = new DispatcherTimer();
+			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(configReader.DoctorsPhotoUpdateIntervalInSeconds);
+			timerUpdatePhotos.Tick += (s, ev) => { dataProvider.UpdateDoctorsPhoto(); };
+			timerUpdatePhotos.Start();
+
+			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
+			DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
+			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + configReader.PauseBetweenAdvertisementsInSeconds);
+			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
+			timerShowAdvertisement.Start();
+			TimerShowAdvertisement_Tick(null, null);
+
+			dataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
+			dataProvider.UpdateData();
+			dataProvider.UpdateDoctorsPhoto();
+		}
+
+
+
 		private void RaiseShowAdvertisementEvent() {
 			BorderAdvertisementFirstPart.HorizontalAlignment = HorizontalAlignment.Right;
 			BorderAdvertisementSecondPart.HorizontalAlignment = HorizontalAlignment.Right;
@@ -46,74 +127,10 @@ namespace Infoscreen {
 			BorderAdvertisementFirstPart.RaiseEvent(routedEventArgs);
 		}
 
-		public MainWindow() {
-			Logging.ToLog("MainWindow - Создание основного окна приложения");
-
-			InitializeComponent();
-
-			PreviewKeyDown += (s, e) => {
-				RaiseShowAdvertisementEvent();
-
-				if (e.Key.Equals(Key.Escape)) {
-					Logging.ToLog("MainWindow - ===== Завершение работы по нажатию клавиши ESC");
-					Application.Current.Shutdown();
-				}
-			};
-
-			DispatcherTimer timerSeconds = new DispatcherTimer();
-			timerSeconds.Interval = TimeSpan.FromSeconds(1);
-			timerSeconds.Tick += (s, e) => {
-				Application.Current.Dispatcher.Invoke((Action)delegate {
-					TextBlockTimeSplitter.Visibility = 
-						TextBlockTimeSplitter.Visibility == Visibility.Visible ? 
-						Visibility.Hidden : Visibility.Visible;
-					TextBlockTimeHours.Text = DateTime.Now.Hour.ToString();
-					TextBlockTimeMinutes.Text = DateTime.Now.ToString("mm");
-				});
-			};
-			timerSeconds.Start();
-
-			if (!ConfigReader.IsConfigReadedSuccessfull) {
-				TextBlockRoom.Visibility = Visibility.Hidden;
-				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
-				FrameChair.Navigate(new PageError());
-				return;
-			}
-
-			if (string.IsNullOrEmpty(ConfigReader.Chairs)) {
-				TextBlockRoom.Text = "Кабинет не выбран";
-				Logging.ToLog("MainWindow - Не заполнен список кабинок");
-				return;
-			}
-
-			Logging.ToLog("MainWindow - Запуск таймера обновления данных");
-			DispatcherTimer timerUpdateData = new DispatcherTimer();
-			timerUpdateData.Interval = TimeSpan.FromSeconds(ConfigReader.DatabaseQueryExecutionIntervalInSeconds);
-			timerUpdateData.Tick += (s, e) => { DataProvider.UpdateData(); };
-			timerUpdateData.Start();
-
-			Logging.ToLog("MainWindow - Запуск таймера обновления фотографий");
-			DispatcherTimer timerUpdatePhotos = new DispatcherTimer();
-			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(ConfigReader.DoctorsPhotoUpdateIntervalInSeconds);
-			timerUpdatePhotos.Tick += (s, e) => { DataProvider.UpdateDoctorsPhoto(); };
-			timerUpdatePhotos.Start();
-
-			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
-			DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
-			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + ConfigReader.PauseBetweenAdvertisementsInSeconds);
-			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
-			timerShowAdvertisement.Start();
-			TimerShowAdvertisement_Tick(null, null);
-
-			DataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
-			DataProvider.UpdateData();
-			DataProvider.UpdateDoctorsPhoto();
-		}
-
 		private void TimerShowAdvertisement_Tick(object sender, EventArgs e) {
 			Logging.ToLog("MainWindow - Отображение рекламного сообщения");
 
-			if (!ConfigReader.ShowAdvertisement) {
+			if (!configReader.ShowAdvertisement) {
 				Logging.ToLog("MainWindow - пропуск отображения в соответствии с настройками");
 				return;
 			}
@@ -123,16 +140,16 @@ namespace Infoscreen {
 				return;
 			}
 
-			if (ConfigReader.AdvertisementItems.Count == 0) {
+			if (configReader.AdvertisementItems.Count == 0) {
 				Logging.ToLog("MainWindow - пропуск отображения, т.к. отсутствуют доступные сообщения");
 				return;
 			}
 
 			try {
-				ConfigReader.ItemAdvertisement advertisement = ConfigReader.AdvertisementItems[ConfigReader.CurrentAdvertisementIndex];
-				ConfigReader.CurrentAdvertisementIndex++;
-				if (ConfigReader.CurrentAdvertisementIndex == ConfigReader.AdvertisementItems.Count)
-					ConfigReader.CurrentAdvertisementIndex = 0;
+				ConfigReader.ItemAdvertisement advertisement = configReader.AdvertisementItems[configReader.CurrentAdvertisementIndex];
+				configReader.CurrentAdvertisementIndex++;
+				if (configReader.CurrentAdvertisementIndex == configReader.AdvertisementItems.Count)
+					configReader.CurrentAdvertisementIndex = 0;
 
 				TextBlockAdvertisementTitle.Text = advertisement.Title;
 				TextBlockAdvertisementBody.Text = advertisement.Body;
@@ -153,7 +170,7 @@ namespace Infoscreen {
 		}
 
 		private void DataProvider_OnUpdateCompleted(object sender, EventArgs e) {
-			if (!DataProvider.IsUpdateSuccessfull) {
+			if (!dataProvider.IsUpdateSuccessfull) {
 				if (isErrorPageShowing)
 					return;
 
@@ -173,13 +190,13 @@ namespace Infoscreen {
 				return;
 
 			Logging.ToLog("MainWindow - Создание страниц для кресел");
-			if (DataProvider.ChairsDict.Count == 0) {
+			if (dataProvider.ChairsDict.Count == 0) {
 				Logging.ToLog("MainWindow - Отсутствует информация о креслах");
 				TextBlockRoom.Text = "Кабинет не выбран";
 				return;
 			} else {
-				foreach (ItemChair itemChair in DataProvider.ChairsDict.Values) {
-					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum);
+				foreach (ItemChair itemChair in dataProvider.ChairsDict.Values) {
+					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, configReader.IsLiveQueue, dataProvider);
 					Border border = new Border {
 						Margin = new Thickness(3,0,3,0),
 						Height = 5,
@@ -188,7 +205,7 @@ namespace Infoscreen {
 						VerticalAlignment = VerticalAlignment.Center
 					};
 
-					if (DataProvider.ChairsDict.Count > 1)
+					if (dataProvider.ChairsDict.Count > 1)
 						StackPanelPageIndicator.Children.Add(border);
 
 					chairPages.Add(pageChair, border);
@@ -197,7 +214,7 @@ namespace Infoscreen {
 				if (chairPages.Count > 1) {
 					DispatcherTimer timerChangePage = new DispatcherTimer();
 					timerChangePage = new DispatcherTimer();
-					timerChangePage.Interval = TimeSpan.FromSeconds(ConfigReader.ChairPagesRotateIntervalInSeconds);
+					timerChangePage.Interval = TimeSpan.FromSeconds(configReader.ChairPagesRotateIntervalInSeconds);
 					timerChangePage.Tick += TimerChangePage_Tick;
 					timerChangePage.Start();
 				}
