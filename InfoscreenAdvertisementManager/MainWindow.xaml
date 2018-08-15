@@ -5,8 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InfoscreenAdvertisementManager"
         mc:Ignorable="d"
-        Title="Infoscreen Advertisement Manager" Height="450" Width="800">
-    <Grid>
-        
+        Title="Infoscreen Advertisement Manager"
+        Height="600" 
+        Width="1280"
+        MinWidth="1280"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <TextBlock x:Name="TextBlockMain"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextWrapping="Wrap"/>
+
+        <Frame x:Name="FrameMain"
+               NavigationUIVisibility="Hidden"
+               Visibility="Hidden"/>
     </Grid>
 </Window>

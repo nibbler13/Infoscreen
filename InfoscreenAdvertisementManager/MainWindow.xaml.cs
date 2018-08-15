@@ -20,6 +20,32 @@ namespace InfoscreenAdvertisementManager {
 	public partial class MainWindow : Window {
 		public MainWindow() {
 			InitializeComponent();
+
+			Loaded += MainWindow_Loaded;
+		}
+
+		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
+			string adFilePath = Infoscreen.Logging.ASSEMBLY_DIRECTORY + "Advertisement.xml";
+			TextBlockMain.Text = "Считывание файла с информацией о рекламе: " + adFilePath;
+
+			Infoscreen.Advertisement advertisement = null;
+			await Task.Run(() => {
+				Infoscreen.Advertisement.GetAdvertisement(
+					adFilePath, out advertisement);
+			});
+
+			TextBlockMain.Visibility = Visibility.Hidden;
+			FrameMain.Visibility = Visibility.Visible;
+
+			if (advertisement.IsReadedSuccessfully) {
+				PageAdvertisementFileView pageAdvertisementFileView = 
+					new PageAdvertisementFileView(advertisement);
+				FrameMain.Navigate(pageAdvertisementFileView);
+			} else {
+				PageAdvertisementFileNotFound pageAdvertisementFileNotFound = 
+					new PageAdvertisementFileNotFound();
+				FrameMain.Navigate(pageAdvertisementFileNotFound);
+			}
 		}
 	}
 }

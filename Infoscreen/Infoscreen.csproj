@@ -62,11 +62,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Advertisement.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ConfigReader.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="DataProvider.cs" />
     <Compile Include="FirebirdClient.cs" />
     <Compile Include="Logging.cs" />

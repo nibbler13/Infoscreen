@@ -48,16 +48,16 @@ namespace Infoscreen
 				return;
 			}
 
-			ItemChair.StatusInfo statusInfo = dataProvider.ChairsDict[ChID].CurrentState;
+			DataProvider.ItemChair.StatusInfo statusInfo = dataProvider.ChairsDict[ChID].CurrentState;
 
 			switch (statusInfo.Status) {
-				case ItemChair.Status.Free:
-				case ItemChair.Status.Invitation:
-				case ItemChair.Status.Underway:
-				case ItemChair.Status.Delayed:
+				case DataProvider.ItemChair.Status.Free:
+				case DataProvider.ItemChair.Status.Invitation:
+				case DataProvider.ItemChair.Status.Underway:
+				case DataProvider.ItemChair.Status.Delayed:
 					ShowReceptionIsConducted(statusInfo);
 					break;
-				case ItemChair.Status.NotConducted:
+				case DataProvider.ItemChair.Status.NotConducted:
 				default:
 					ShowReceptionIsNotConducted();
 					break;
@@ -69,13 +69,13 @@ namespace Infoscreen
 			GridReceptionIsNotConducted.Visibility = Visibility.Visible;
 		}
 
-		private void ShowReceptionIsConducted(ItemChair.StatusInfo statusInfo) {
+		private void ShowReceptionIsConducted(DataProvider.ItemChair.StatusInfo statusInfo) {
 			TextBlockNoEmployee.Visibility = statusInfo.employees.Count == 0 ? Visibility.Visible : Visibility.Hidden;
 			StackPanelDoc.Visibility = statusInfo.employees.Count == 1 ? Visibility.Visible : Visibility.Hidden;
 			StackPanelMultipleEmployees.Visibility = statusInfo.employees.Count > 1 ? Visibility.Visible : Visibility.Hidden;
 
 			if (statusInfo.employees.Count == 1) {
-				ItemChair.Employee employee = statusInfo.employees[0];
+				DataProvider.ItemChair.Employee employee = statusInfo.employees[0];
 				TextBlockDepartment.Text = employee.Department;
 				TextBlockEmployeeName.Text = employee.Name;
 				TextBlockEmployeePosition.Text = employee.Position;
@@ -95,7 +95,7 @@ namespace Infoscreen
 				StackPanelMultipleEmployees.Children.Clear();
 				TextBlockDepartment.Text = string.Empty;
 
-				foreach (ItemChair.Employee employee in statusInfo.employees) {
+				foreach (DataProvider.ItemChair.Employee employee in statusInfo.employees) {
 					TextBlockDepartment.Text += employee.Department + ", ";
 
 					TextBlock textBlockDoc = new TextBlock();
@@ -129,23 +129,23 @@ namespace Infoscreen
 				state = "Приём ведётся в порядке живой очереди";
 			else
 				switch (statusInfo.Status) {
-					case ItemChair.Status.Free:
+					case DataProvider.ItemChair.Status.Free:
 						state = "Кабинет свободен";
 						break;
-					case ItemChair.Status.Invitation:
+					case DataProvider.ItemChair.Status.Invitation:
 						state = statusInfo.PatientToInviteName + "," + Environment.NewLine +
 							"Пройдите на приём";
 						break;
-					case ItemChair.Status.Underway:
+					case DataProvider.ItemChair.Status.Underway:
 						state = "Идет приём";
 						if (!string.IsNullOrEmpty(statusInfo.ReceptionTimeLeft))
 							state += Environment.NewLine +
 								"Осталось " + statusInfo.ReceptionTimeLeft + " минут";
 						break;
-					case ItemChair.Status.Delayed:
+					case DataProvider.ItemChair.Status.Delayed:
 						state = "Приём задерживается";
 						break;
-					case ItemChair.Status.NotConducted:
+					case DataProvider.ItemChair.Status.NotConducted:
 					default:
 						break;
 				}

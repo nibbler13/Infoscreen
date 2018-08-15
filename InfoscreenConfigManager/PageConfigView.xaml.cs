@@ -76,13 +76,13 @@ namespace InfoscreenConfigManager {
 		private readonly string QUERY_GET_CHAIRS = 
 			Properties.Settings.Default.DataBaseSqlQueryGetChairs;
 
-		private List<Infoscreen.ConfigReader.ItemChair> chairItems =
-			new List<Infoscreen.ConfigReader.ItemChair>();
+		private List<Infoscreen.Configuration.ItemSystem.ItemChair> chairItems =
+			new List<Infoscreen.Configuration.ItemSystem.ItemChair>();
 
 		public string DatabaseUpdateIntervalInSeconds { get; set; }
 
-		public ObservableCollection<Infoscreen.ConfigReader.ItemSystem> SystemItems { get; set; } =
-			new ObservableCollection<Infoscreen.ConfigReader.ItemSystem>();
+		public ObservableCollection<Infoscreen.Configuration.ItemSystem> SystemItems { get; set; } =
+			new ObservableCollection<Infoscreen.Configuration.ItemSystem>();
 
 		private static readonly Regex regexDigitOnly = new Regex("[^0-9]");
 
@@ -97,27 +97,27 @@ namespace InfoscreenConfigManager {
 			}
 		}
 
-		private Infoscreen.ConfigReader configReader;
+		private Infoscreen.Configuration configuration;
 
 
 
 
 
-		public PageConfigView(Infoscreen.ConfigReader configReader) {
+		public PageConfigView(Infoscreen.Configuration configuration) {
 			InitializeComponent();
 
-			this.configReader = configReader;
+			this.configuration = configuration;
 			
 			DataGridItemSystem.DataContext = this;
 
-			ChairsRotateIntervalInSeconds = configReader.ChairPagesRotateIntervalInSeconds.ToString();
-			TimetableRotateIntervalInSeconds = configReader.TimetableRotateIntervalInSeconds.ToString();
-			PhotosFolderPath = configReader.PhotosFolderPath;
-			PhotosUpdateIntervalInSeconds = configReader.DoctorsPhotoUpdateIntervalInSeconds.ToString();
-			DatabaseAddress = configReader.DataBaseAddress;
-			DatabaseName = configReader.DataBaseName;
-			DatabaseUpdateIntervalInSeconds = configReader.DatabaseQueryExecutionIntervalInSeconds.ToString();
-			ActiveDirectoryOU = configReader.ActiveDirectoryOU;
+			ChairsRotateIntervalInSeconds = configuration.ChairPagesRotateIntervalInSeconds.ToString();
+			TimetableRotateIntervalInSeconds = configuration.TimetableRotateIntervalInSeconds.ToString();
+			PhotosFolderPath = configuration.PhotosFolderPath;
+			PhotosUpdateIntervalInSeconds = configuration.DoctorsPhotoUpdateIntervalInSeconds.ToString();
+			DatabaseAddress = configuration.DataBaseAddress;
+			DatabaseName = configuration.DataBaseName;
+			DatabaseUpdateIntervalInSeconds = configuration.DatabaseQueryExecutionIntervalInSeconds.ToString();
+			ActiveDirectoryOU = configuration.ActiveDirectoryOU;
 
 			DataContext = this;
 
@@ -139,8 +139,8 @@ namespace InfoscreenConfigManager {
 			firebirdClient = new Infoscreen.FirebirdClient(
 				DatabaseAddress,
 				DatabaseName,
-				configReader.DataBaseUserName,
-				configReader.DataBasePassword);
+				configuration.DataBaseUserName,
+				configuration.DataBasePassword);
 
 			if (!firebirdClient.IsDbAvailable())
 				return;
@@ -180,7 +180,7 @@ namespace InfoscreenConfigManager {
 									string name = resEnt.Properties["name"][0].ToString();
 									string dn = resEnt.Properties["distinguishedName"][0].ToString();
 
-									Infoscreen.ConfigReader.ItemSystem itemSystem = new Infoscreen.ConfigReader.ItemSystem() {
+									Infoscreen.Configuration.ItemSystem itemSystem = new Infoscreen.Configuration.ItemSystem() {
 										SystemName = name,
 										SystemUnit = dn.Replace(ActiveDirectoryOU, "").
 													Replace("CN=" + name + ",", "").
@@ -190,12 +190,12 @@ namespace InfoscreenConfigManager {
 									};
 
 									try {
-										IEnumerable<Infoscreen.ConfigReader.ItemSystem> systemsInConfig =
-											configReader.SystemItems.Where(
+										IEnumerable<Infoscreen.Configuration.ItemSystem> systemsInConfig =
+											configuration.SystemItems.Where(
 												x => x.SystemName.ToUpper().Equals(itemSystem.SystemName.ToUpper()));
 
 										if (systemsInConfig.Count() == 1) {
-											Infoscreen.ConfigReader.ItemSystem itemSystemCR = systemsInConfig.First();
+											Infoscreen.Configuration.ItemSystem itemSystemCR = systemsInConfig.First();
 											itemSystem.ChairItems = itemSystemCR.ChairItems;
 											itemSystem.IsLiveQueue = itemSystemCR.IsLiveQueue;
 											itemSystem.IsTimetable = itemSystemCR.IsTimetable;
@@ -235,7 +235,7 @@ namespace InfoscreenConfigManager {
 					string rnum = row["RNUM"].ToString();
 					string rname = row["RNAME"].ToString();
 
-					Infoscreen.ConfigReader.ItemChair chair = new Infoscreen.ConfigReader.ItemChair() {
+					Infoscreen.Configuration.ItemSystem.ItemChair chair = new Infoscreen.Configuration.ItemSystem.ItemChair() {
 						ChairID = chid,
 						ChairName = chname,
 						RoomNumber = rnum,
@@ -256,8 +256,8 @@ namespace InfoscreenConfigManager {
 				firebirdClient = new Infoscreen.FirebirdClient(
 					DatabaseAddress,
 					DatabaseName,
-					configReader.DataBaseUserName,
-					configReader.DataBasePassword);
+					configuration.DataBaseUserName,
+					configuration.DataBasePassword);
 
 			if (firebirdClient.IsDbAvailable())
 				MessageBox.Show(Window.GetWindow(this), "Соединение выполнено успешно", "",
@@ -299,7 +299,7 @@ namespace InfoscreenConfigManager {
 		private void ButtonEditChairs_Click(object sender, RoutedEventArgs e) {
 			if (firebirdClient == null)
 				firebirdClient = new Infoscreen.FirebirdClient(DatabaseAddress, DatabaseName,
-					configReader.DataBaseUserName, configReader.DataBasePassword);
+					configuration.DataBaseUserName, configuration.DataBasePassword);
 
 			if (chairItems.Count == 0)
 				GetChairItems(true);
@@ -307,8 +307,8 @@ namespace InfoscreenConfigManager {
 			if (chairItems.Count == 0)
 				return;
 
-			Infoscreen.ConfigReader.ItemSystem itemSystem =
-				(sender as Button).DataContext as Infoscreen.ConfigReader.ItemSystem;
+			Infoscreen.Configuration.ItemSystem itemSystem =
+				(sender as Button).DataContext as Infoscreen.Configuration.ItemSystem;
 			string systemName = itemSystem.SystemName;
 
 			WindowEditSystemChairs windowAddOrEditSystem =
@@ -363,10 +363,28 @@ namespace InfoscreenConfigManager {
 				return;
 			}
 
-			XmlSerializer xmlSerializer = new XmlSerializer(typeof(Infoscreen.ConfigReader));
-			TextWriter textWriter = new StreamWriter(Infoscreen.Logging.ASSEMBLY_DIRECTORY + "test.xml");
-			xmlSerializer.Serialize(textWriter, configReader);
-			textWriter.Close();
+			try {
+				configuration.ChairPagesRotateIntervalInSeconds = Convert.ToInt32(ChairsRotateIntervalInSeconds);
+				configuration.TimetableRotateIntervalInSeconds = Convert.ToInt32(TimetableRotateIntervalInSeconds);
+				configuration.PhotosFolderPath = PhotosFolderPath;
+				configuration.DoctorsPhotoUpdateIntervalInSeconds = Convert.ToInt32(PhotosUpdateIntervalInSeconds);
+				configuration.DataBaseAddress = DatabaseAddress;
+				configuration.DataBaseName = DatabaseName;
+				configuration.DatabaseQueryExecutionIntervalInSeconds = Convert.ToInt32(DatabaseUpdateIntervalInSeconds);
+				configuration.ActiveDirectoryOU = ActiveDirectoryOU;
+				configuration.SystemItems = SystemItems.ToList();
+
+				if (Infoscreen.Configuration.SaveConfiguration(configuration))
+					MessageBox.Show(Window.GetWindow(this), "Конфигурация успешно сохранена в файл: " + configuration.ConfigFilePath,
+						"", MessageBoxButton.OK, MessageBoxImage.Information);
+				else
+					MessageBox.Show(Window.GetWindow(this), "Возникла ошибка при сохранении конфигурации в файл: " + configuration.ConfigFilePath +
+						". Подробности в журнале работы.", "", MessageBoxButton.OK, MessageBoxImage.Error);
+			} catch (Exception exc) {
+				Infoscreen.Logging.ToLog(exc.Message + Environment.NewLine + exc.StackTrace);
+				MessageBox.Show(Window.GetWindow(this), "Возникла ошибка при сохранении конфигурации в файл: " + configuration.ConfigFilePath +
+					". " + exc.Message + Environment.NewLine + exc.StackTrace, "", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
 		}
 
 
@@ -378,14 +396,14 @@ namespace InfoscreenConfigManager {
 
 
 		private void CheckBoxIsLiveQueue_Checked(object sender, RoutedEventArgs e) {
-			if (!((sender as CheckBox).DataContext is Infoscreen.ConfigReader.ItemSystem itemSystem))
+			if (!((sender as CheckBox).DataContext is Infoscreen.Configuration.ItemSystem itemSystem))
 				return;
 
 			itemSystem.IsTimetable = false;
 		}
 
 		private void CheckBoxIsTimetable_Checked(object sender, RoutedEventArgs e) {
-			if (!((sender as CheckBox).DataContext is Infoscreen.ConfigReader.ItemSystem itemSystem))
+			if (!((sender as CheckBox).DataContext is Infoscreen.Configuration.ItemSystem itemSystem))
 				return;
 
 			if (itemSystem.ChairItems.Count == 0) {

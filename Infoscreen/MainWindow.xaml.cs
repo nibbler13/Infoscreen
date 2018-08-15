@@ -34,8 +34,9 @@ namespace Infoscreen {
 		}
 
 		private string configFilePath;
-		private ConfigReader configReader;
+		private Configuration configuration;
 		private DataProvider dataProvider;
+		private Advertisement advertisement;
 
 
 		public MainWindow(string configFilePath) {
@@ -56,8 +57,7 @@ namespace Infoscreen {
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
 			await Task.Run(() => {
-				configReader = new ConfigReader();
-				configReader.ReadConfigFile(configFilePath);
+				Configuration.GetConfiguration(configFilePath, out configuration);
 			});
 
 			DispatcherTimer timerSecondsTick = new DispatcherTimer();
@@ -73,36 +73,40 @@ namespace Infoscreen {
 			};
 			timerSecondsTick.Start();
 
-			if (!configReader.IsConfigReadedSuccessfull) {
+			if (!configuration.IsConfigReadedSuccessfull) {
 				TextBlockRoom.Visibility = Visibility.Hidden;
 				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
 				FrameChair.Navigate(new PageError());
 				return;
 			}
 
-			if (string.IsNullOrEmpty(configReader.Chairs)) {
+			if (string.IsNullOrEmpty(configuration.GetChairsId())) {
 				TextBlockRoom.Text = "Кабинет не выбран";
 				Logging.ToLog("MainWindow - Не заполнен список кабинок");
 				return;
 			}
 
-			dataProvider = new DataProvider(configReader);
+			dataProvider = new DataProvider(configuration);
 
 			Logging.ToLog("MainWindow - Запуск таймера обновления данных");
 			DispatcherTimer timerUpdateData = new DispatcherTimer();
-			timerUpdateData.Interval = TimeSpan.FromSeconds(configReader.DatabaseQueryExecutionIntervalInSeconds);
+			timerUpdateData.Interval = TimeSpan.FromSeconds(configuration.DatabaseQueryExecutionIntervalInSeconds);
 			timerUpdateData.Tick += (s, ev) => { dataProvider.UpdateData(); };
 			timerUpdateData.Start();
 
 			Logging.ToLog("MainWindow - Запуск таймера обновления фотографий");
 			DispatcherTimer timerUpdatePhotos = new DispatcherTimer();
-			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(configReader.DoctorsPhotoUpdateIntervalInSeconds);
+			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(configuration.DoctorsPhotoUpdateIntervalInSeconds);
 			timerUpdatePhotos.Tick += (s, ev) => { dataProvider.UpdateDoctorsPhoto(); };
 			timerUpdatePhotos.Start();
 
+			await Task.Run(() => {
+				Advertisement.GetAdvertisement(string.Empty, out advertisement);
+			});
+
 			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
 			DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
-			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + configReader.PauseBetweenAdvertisementsInSeconds);
+			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + advertisement.PauseBetweenAdInSeconds);
 			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
 			timerShowAdvertisement.Start();
 			TimerShowAdvertisement_Tick(null, null);
@@ -130,7 +134,7 @@ namespace Infoscreen {
 		private void TimerShowAdvertisement_Tick(object sender, EventArgs e) {
 			Logging.ToLog("MainWindow - Отображение рекламного сообщения");
 
-			if (!configReader.ShowAdvertisement) {
+			if (!advertisement.ShowAd) {
 				Logging.ToLog("MainWindow - пропуск отображения в соответствии с настройками");
 				return;
 			}
@@ -140,28 +144,25 @@ namespace Infoscreen {
 				return;
 			}
 
-			if (configReader.AdvertisementItems.Count == 0) {
+			if (advertisement.AdvertisementItems.Count == 0) {
 				Logging.ToLog("MainWindow - пропуск отображения, т.к. отсутствуют доступные сообщения");
 				return;
 			}
 
 			try {
-				ConfigReader.ItemAdvertisement advertisement = configReader.AdvertisementItems[configReader.CurrentAdvertisementIndex];
-				configReader.CurrentAdvertisementIndex++;
-				if (configReader.CurrentAdvertisementIndex == configReader.AdvertisementItems.Count)
-					configReader.CurrentAdvertisementIndex = 0;
+				Advertisement.ItemAdvertisement itemAd = advertisement.GetNextAdItem();
 
-				TextBlockAdvertisementTitle.Text = advertisement.Title;
-				TextBlockAdvertisementBody.Text = advertisement.Body;
-				TextBlockAdvertisementPostScriptum.Text = advertisement.PostScriptum;
+				TextBlockAdvertisementTitle.Text = itemAd.Title;
+				TextBlockAdvertisementBody.Text = itemAd.Body;
+				TextBlockAdvertisementPostScriptum.Text = itemAd.PostScriptum;
 
-				DocPanelAdvertisementTitle.Visibility = string.IsNullOrEmpty(advertisement.Title) ? Visibility.Collapsed : Visibility.Visible;
-				ImageBodyIcon.Visibility = string.IsNullOrEmpty(advertisement.Title) ? Visibility.Visible : Visibility.Collapsed;
-				TextBlockAdvertisementBody.Visibility = string.IsNullOrEmpty(advertisement.Body) ? Visibility.Collapsed : Visibility.Visible;
-				TextBlockAdvertisementPostScriptum.Visibility = string.IsNullOrEmpty(advertisement.PostScriptum) ? Visibility.Collapsed : Visibility.Visible;
+				DocPanelAdvertisementTitle.Visibility = string.IsNullOrEmpty(itemAd.Title) ? Visibility.Collapsed : Visibility.Visible;
+				ImageBodyIcon.Visibility = string.IsNullOrEmpty(itemAd.Title) ? Visibility.Visible : Visibility.Collapsed;
+				TextBlockAdvertisementBody.Visibility = string.IsNullOrEmpty(itemAd.Body) ? Visibility.Collapsed : Visibility.Visible;
+				TextBlockAdvertisementPostScriptum.Visibility = string.IsNullOrEmpty(itemAd.PostScriptum) ? Visibility.Collapsed : Visibility.Visible;
 
-				Logging.ToLog("MainWindow - Отображение сообщения: " + advertisement.Title + ", " +
-					advertisement.Body + ", " + advertisement.PostScriptum);
+				Logging.ToLog("MainWindow - Отображение сообщения: " + itemAd.Title + ", " +
+					itemAd.Body + ", " + itemAd.PostScriptum);
 
 				RaiseShowAdvertisementEvent();
 			} catch (Exception exc) {
@@ -195,8 +196,8 @@ namespace Infoscreen {
 				TextBlockRoom.Text = "Кабинет не выбран";
 				return;
 			} else {
-				foreach (ItemChair itemChair in dataProvider.ChairsDict.Values) {
-					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, configReader.IsLiveQueue, dataProvider);
+				foreach (DataProvider.ItemChair itemChair in dataProvider.ChairsDict.Values) {
+					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, false, dataProvider); //!!!need to set is live queue
 					Border border = new Border {
 						Margin = new Thickness(3,0,3,0),
 						Height = 5,
@@ -214,7 +215,7 @@ namespace Infoscreen {
 				if (chairPages.Count > 1) {
 					DispatcherTimer timerChangePage = new DispatcherTimer();
 					timerChangePage = new DispatcherTimer();
-					timerChangePage.Interval = TimeSpan.FromSeconds(configReader.ChairPagesRotateIntervalInSeconds);
+					timerChangePage.Interval = TimeSpan.FromSeconds(configuration.ChairPagesRotateIntervalInSeconds);
 					timerChangePage.Tick += TimerChangePage_Tick;
 					timerChangePage.Start();
 				}

@@ -1,13 +1,13 @@
-﻿<Page x:Class="InfoscreenConfigManager.PageConfigNotFound"
+﻿<Page x:Class="InfoscreenAdvertisementManager.PageAdvertisementFileNotFound"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:InfoscreenConfigManager"
+      xmlns:local="clr-namespace:InfoscreenAdvertisementManager"
       mc:Ignorable="d" 
-      d:DesignHeight="800" 
-      d:DesignWidth="500"
-      Title="PageConfigNotFound">
+      d:DesignHeight="600"
+      d:DesignWidth="1280"
+      Title="PageAdvertisementFileNotFound">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,20 +15,23 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        
         <TextBlock Grid.Row="0"
-                   Text="Не удалось найти / считать файл конфигурации InfoscreenConfig.xml"
+                   Text="Не удалось найти / считать файл с информацией о рекламе Advertisement.xml"
                    VerticalAlignment="Bottom"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"/>
-        
+
         <Button Grid.Row="1"
                 Content="Выбрать файл"
                 Margin="0,20,0,20"
-                Width="210" Click="ButtonSelectFile_Click"/>
-        
+                Width="210" 
+                Click="ButtonSelectFile_Click"/>
+
         <Button Grid.Row="2"
-                Content="Создать новый файл конфигурации"
+                Content="Создать новый файл"
                 VerticalAlignment="Top"
-                Width="210" Click="ButtonCreateNewFile_Click"/>
+                Width="210" 
+                Click="ButtonCreateNewFile_Click"/>
     </Grid>
 </Page>

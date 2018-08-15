@@ -33,11 +33,11 @@ namespace InfoscreenConfigManager {
 			if (openFileDialog.ShowDialog() != true)
 				return;
 
-			Infoscreen.ConfigReader configReader = new Infoscreen.ConfigReader();
-			configReader.ReadConfigFile(openFileDialog.FileName, false);
+			Infoscreen.Configuration configuration = new Infoscreen.Configuration();
+			Infoscreen.Configuration.GetConfiguration(openFileDialog.FileName, out configuration);
 
-			if (configReader.IsConfigReadedSuccessfull) {
-				PageConfigView pageConfigView = new PageConfigView(configReader);
+			if (configuration.IsConfigReadedSuccessfull) {
+				PageConfigView pageConfigView = new PageConfigView(configuration);
 				NavigationService.Navigate(pageConfigView);
 			} else {
 				MessageBox.Show("Не удалось корректно прочитать файл с конфигурацией", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -50,13 +50,8 @@ namespace InfoscreenConfigManager {
 		}
 
 		private void ButtonCreateNewFile_Click(object sender, RoutedEventArgs e) {
-			Infoscreen.ConfigReader configReader = new Infoscreen.ConfigReader();
-			configReader.InitializeConfig(
-				Properties.Settings.Default.DataBaseUsername, 
-				Properties.Settings.Default.DataBaseUserPassword, 
-				Properties.Settings.Default.DataBaseSqlQuery);
-
-			PageConfigView pageConfigView = new PageConfigView(configReader);
+			Infoscreen.Configuration configuration = new Infoscreen.Configuration();
+			PageConfigView pageConfigView = new PageConfigView(configuration);
 			NavigationService.Navigate(pageConfigView);
 		}
 	}

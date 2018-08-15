@@ -25,20 +25,20 @@ namespace InfoscreenConfigManager {
 		}
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-			string currentConfig = Infoscreen.Logging.ASSEMBLY_DIRECTORY + "InfoscreenConfig.xml";
-			TextBlockMain.Text = "Считывание файла конфигурации: " + currentConfig;
+			string cofigFilePath = Infoscreen.Logging.ASSEMBLY_DIRECTORY + "InfoscreenConfig.xml";
+			TextBlockMain.Text = "Считывание файла конфигурации: " + cofigFilePath;
 
-			Infoscreen.ConfigReader configReader = new Infoscreen.ConfigReader();
-
+			Infoscreen.Configuration configuration = null;
 			await Task.Run(() => {
-				configReader.ReadConfigFile(currentConfig, false);
+				Infoscreen.Configuration.GetConfiguration(
+					cofigFilePath, out configuration);
 			});
 
 			TextBlockMain.Visibility = Visibility.Hidden;
 			FrameMain.Visibility = Visibility.Visible;
 
-			if (configReader.IsConfigReadedSuccessfull) {
-				PageConfigView pageConfigView = new PageConfigView(configReader);
+			if (configuration.IsConfigReadedSuccessfull) {
+				PageConfigView pageConfigView = new PageConfigView(configuration);
 				FrameMain.Navigate(pageConfigView);
 			} else {
 				PageConfigNotFound pageConfigNotFound = new PageConfigNotFound();

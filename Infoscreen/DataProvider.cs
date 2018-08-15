@@ -10,7 +10,7 @@ using System.Windows;
 namespace Infoscreen {
 	public class DataProvider {
 		public Dictionary<string, ItemChair> ChairsDict { get; private set; } = new Dictionary<string, ItemChair>();
-		private readonly ConfigReader configReader;
+		private readonly Configuration configuration;
 		private FirebirdClient firebirdClient;
 
 		private List<string> doctors = new List<string>();
@@ -23,8 +23,8 @@ namespace Infoscreen {
 
 
 
-		public DataProvider(ConfigReader configReader) {
-			this.configReader = configReader;
+		public DataProvider(Configuration configReader) {
+			this.configuration = configReader;
 			firebirdClient = new FirebirdClient(
 				configReader.DataBaseAddress,
 				configReader.DataBaseName,
@@ -38,8 +38,8 @@ namespace Infoscreen {
 		public void UpdateData() {
 			Logging.ToLog("DataProvider - Обновление данных");
 
-			DataTable dataTable = firebirdClient.GetDataTable(configReader.DataBaseQuery, 
-				new Dictionary<string, object>() { { "@chairList", configReader.Chairs } });
+			DataTable dataTable = firebirdClient.GetDataTable(configuration.DataBaseQuery,
+				new Dictionary<string, object>() { { "@chairList", configuration.GetChairsId() } });
 			ChairsDict.Clear();
 
 			Logging.ToLog("DataProvider - Получено строк - " + dataTable.Rows.Count);
@@ -140,7 +140,7 @@ namespace Infoscreen {
 		public void UpdateDoctorsPhoto() {
 			Logging.ToLog("DataProvider - Обновление фотографий сотрудников");
 
-			string searchPath = configReader.PhotosFolderPath;
+			string searchPath = configuration.PhotosFolderPath;
 			string destinationPath = Directory.GetCurrentDirectory() + "\\DoctorsPhotos\\";
 			if (!Directory.Exists(destinationPath))
 				Directory.CreateDirectory(destinationPath);
@@ -214,31 +214,34 @@ namespace Infoscreen {
 				return string.Empty;
 			}
 		}
-	}
 
-	public class ItemChair {
-		public enum Status { NotConducted, Free, Invitation, Underway, Delayed }
-		public string ChID { get; private set; } = string.Empty;
-		public string RNum { get; private set; } = string.Empty;
-		public StatusInfo CurrentState { get; set; }
 
-		public ItemChair(string chid, string rnum) {
-			ChID = chid;
-			RNum = rnum;
-		}
 
-		public class StatusInfo {
-			public Status Status { get; set; } = ItemChair.Status.NotConducted;
-			public List<Employee> employees = new List<Employee>();
-			public string PatientToInviteName { get; set; } = string.Empty;
-			public string ReceptionTimeLeft { get; set; } = string.Empty;
-		}
 
-		public class Employee {
-			public string Position { get; set; } = string.Empty;
-			public string Name { get; set; } = string.Empty;
-			public string Department { get; set; } = string.Empty;
-			public string WorkingTime { get; set; } = string.Empty;
+		public class ItemChair {
+			public enum Status { NotConducted, Free, Invitation, Underway, Delayed }
+			public string ChID { get; private set; } = string.Empty;
+			public string RNum { get; private set; } = string.Empty;
+			public StatusInfo CurrentState { get; set; }
+
+			public ItemChair(string chid, string rnum) {
+				ChID = chid;
+				RNum = rnum;
+			}
+
+			public class StatusInfo {
+				public Status Status { get; set; } = ItemChair.Status.NotConducted;
+				public List<Employee> employees = new List<Employee>();
+				public string PatientToInviteName { get; set; } = string.Empty;
+				public string ReceptionTimeLeft { get; set; } = string.Empty;
+			}
+
+			public class Employee {
+				public string Position { get; set; } = string.Empty;
+				public string Name { get; set; } = string.Empty;
+				public string Department { get; set; } = string.Empty;
+				public string WorkingTime { get; set; } = string.Empty;
+			}
 		}
 	}
 }

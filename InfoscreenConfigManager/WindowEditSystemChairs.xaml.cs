@@ -27,11 +27,11 @@ namespace InfoscreenConfigManager {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public ObservableCollection<Infoscreen.ConfigReader.ItemChair> ChairItems { get; set; } =
-			new ObservableCollection<Infoscreen.ConfigReader.ItemChair>();
+		public ObservableCollection<Infoscreen.Configuration.ItemSystem.ItemChair> ChairItems { get; set; } =
+			new ObservableCollection<Infoscreen.Configuration.ItemSystem.ItemChair>();
 
-		public ObservableCollection<Infoscreen.ConfigReader.ItemChair> SelectedChairItems { get; set; } =
-			new ObservableCollection<Infoscreen.ConfigReader.ItemChair>();
+		public ObservableCollection<Infoscreen.Configuration.ItemSystem.ItemChair> SelectedChairItems { get; set; } =
+			new ObservableCollection<Infoscreen.Configuration.ItemSystem.ItemChair>();
 
 		public ICollectionView ChairItemsView {
 			get { return CollectionViewSource.GetDefaultView(ChairItems); }
@@ -48,9 +48,9 @@ namespace InfoscreenConfigManager {
 		}
 
 		public WindowEditSystemChairs(
-			List<Infoscreen.ConfigReader.ItemChair> chairItems, 
+			List<Infoscreen.Configuration.ItemSystem.ItemChair> chairItems, 
 			string systemName, 
-			ObservableCollection<Infoscreen.ConfigReader.ItemChair> selectedChairItems) {
+			ObservableCollection<Infoscreen.Configuration.ItemSystem.ItemChair> selectedChairItems) {
 			InitializeComponent();
 			DataContext = this;
 			chairItems.ForEach(ChairItems.Add);
@@ -58,16 +58,17 @@ namespace InfoscreenConfigManager {
 			DataGridItemChairs.DataContext = this;
 			DataGridSelectedItemChairs.DataContext = this;
 			ChairItems.OrderBy(x => x.ChairName).ThenBy(y => y.RoomName);
-			ChairItemsView.Filter = new Predicate<object>(o => FilterByRoomNumber(o as Infoscreen.ConfigReader.ItemChair));
+			ChairItemsView.Filter = new Predicate<object>(o => FilterByRoomNumber(o as Infoscreen.Configuration.ItemSystem.ItemChair));
 			SelectedChairItems = selectedChairItems;
 			SetButtonsState();
+			TextBoxFilterByRoomNumber.Focus();
 		}
 
 		private void ButtonOk_Click(object sender, RoutedEventArgs e) {
 			Close();
 		}
 
-		private bool FilterByRoomNumber(Infoscreen.ConfigReader.ItemChair itemChair) {
+		private bool FilterByRoomNumber(Infoscreen.Configuration.ItemSystem.ItemChair itemChair) {
 			return SearchByRoomNumber == null ||
 				itemChair.RoomNumber.Contains(SearchByRoomNumber);
 		}
@@ -77,15 +78,17 @@ namespace InfoscreenConfigManager {
 		}
 
 		private void ButtonToSelectedAll_Click(object sender, RoutedEventArgs e) {
-			foreach (Infoscreen.ConfigReader.ItemChair item in ChairItems)
+			foreach (Infoscreen.Configuration.ItemSystem.ItemChair item in ChairItemsView)
 				SelectedChairItems.Add(item);
 
-			ChairItems.Clear();
+			foreach (Infoscreen.Configuration.ItemSystem.ItemChair item in SelectedChairItems)
+				ChairItems.Remove(item);
+
 			SetButtonsState();
 		}
 
 		private void ButtonFromSelectedAll_Click(object sender, RoutedEventArgs e) {
-			foreach (Infoscreen.ConfigReader.ItemChair item in SelectedChairItems)
+			foreach (Infoscreen.Configuration.ItemSystem.ItemChair item in SelectedChairItems)
 				ChairItems.Add(item);
 
 			SelectedChairItems.Clear();
@@ -113,14 +116,14 @@ namespace InfoscreenConfigManager {
 		}
 
 		private void SetButtonsState() {
-			ButtonToSelectedAll.IsEnabled = ChairItems.Count > 0;
+			ButtonToSelectedAll.IsEnabled = !ChairItemsView.IsEmpty;
 			ButtonFromSelectedAll.IsEnabled = SelectedChairItems.Count > 0;
 			ButtonFromSelectedOne.IsEnabled = DataGridSelectedItemChairs.SelectedItems.Count > 0;
 			ButtonToSelectedOne.IsEnabled = DataGridItemChairs.SelectedItems.Count > 0;
 		}
 
 		private void OneChairToSelected() {
-			if (!(DataGridItemChairs.SelectedItem is Infoscreen.ConfigReader.ItemChair itemChair))
+			if (!(DataGridItemChairs.SelectedItem is Infoscreen.Configuration.ItemSystem.ItemChair itemChair))
 				return;
 
 			ChairItems.Remove(itemChair);
@@ -130,7 +133,7 @@ namespace InfoscreenConfigManager {
 		}
 
 		private void OneChairFromSelected() {
-			if (!(DataGridSelectedItemChairs.SelectedItem is Infoscreen.ConfigReader.ItemChair itemChair))
+			if (!(DataGridSelectedItemChairs.SelectedItem is Infoscreen.Configuration.ItemSystem.ItemChair itemChair))
 				return;
 
 			ChairItems.Add(itemChair);
