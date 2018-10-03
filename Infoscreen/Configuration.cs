@@ -120,6 +120,11 @@ namespace Infoscreen {
 
 
 		public static bool GetConfiguration(string configFilePath, out Configuration configuration) {
+			if (!File.Exists(configFilePath)) {
+				configuration = new Configuration();
+				return false;
+			}
+
 			try {
 				FileStream fileStream = new FileStream(configFilePath, FileMode.Open);
 				XmlSerializer xmlSerializer = new XmlSerializer(typeof(Configuration));

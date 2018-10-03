@@ -20,41 +20,52 @@ namespace InfoscreenAdvertisementManager {
 	/// </summary>
 	public partial class PageAdvertisementFileView : Page {
 		private Infoscreen.Advertisement advertisement;
-		public bool ShowAd { get; set; }
-		public string AdDurationInSeconds { get; set; }
-		public string PauseBetweenAdInSeconds { get; set; }
-
-		public ObservableCollection<Infoscreen.Advertisement.ItemAdvertisement> AdvertisementItems { get; set; } =
-			new ObservableCollection<Infoscreen.Advertisement.ItemAdvertisement>();
 
 		public PageAdvertisementFileView(Infoscreen.Advertisement advertisement) {
 			InitializeComponent();
 			this.advertisement = advertisement;
-			DataContext = this;
+			DataContext = advertisement;
 			DataGridItemAdvertisement.Items.Clear();
-			DataGridItemAdvertisement.DataContext = this;
-
-			AdDurationInSeconds = advertisement.AdDurationInSeconds.ToString();
-			PauseBetweenAdInSeconds = advertisement.PauseBetweenAdInSeconds.ToString();
-			ShowAd = advertisement.ShowAd;
-
-			advertisement.AdvertisementItems.ForEach(AdvertisementItems.Add);
+			DataGridItemAdvertisement.DataContext = advertisement;
+			CheckBoxDisableAdDisplay_Checked(CheckBoxDisableAdDisplay, new RoutedEventArgs());
 		}
 
 		private void ButtonSaveChanges_Click(object sender, RoutedEventArgs e) {
-
+			if (advertisement.SaveAdvertisements(out string error))
+				MessageBox.Show(Application.Current.MainWindow, "Изменения успешно сохранены", "",
+					MessageBoxButton.OK, MessageBoxImage.Information);
+			else
+				MessageBox.Show(Application.Current.MainWindow, "При сохранении возникла ошибка: " + error, "", 
+					MessageBoxButton.OK, MessageBoxImage.Error);
 		}
 
 		private void ButtonDeleteAd_Click(object sender, RoutedEventArgs e) {
+			MessageBoxResult result = MessageBox.Show(Application.Current.MainWindow, 
+				"Вы действительно хотите удалить выделенные строки?", "", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
+			if (result != MessageBoxResult.Yes)
+				return;
+
+			List<Infoscreen.Advertisement.ItemAdvertisement> itemsToDelete = 
+				new List<Infoscreen.Advertisement.ItemAdvertisement>();
+
+			foreach (Infoscreen.Advertisement.ItemAdvertisement item in DataGridItemAdvertisement.SelectedItems)
+				itemsToDelete.Add(item);
+
+			foreach (Infoscreen.Advertisement.ItemAdvertisement item in itemsToDelete)
+				advertisement.AdvertisementItems.Remove(item);
 		}
 
 		private void ButtonAddAd_Click(object sender, RoutedEventArgs e) {
-			AdvertisementItems.Add(new Infoscreen.Advertisement.ItemAdvertisement());
+			advertisement.AdvertisementItems.Add(new Infoscreen.Advertisement.ItemAdvertisement());
 		}
 
 		private void DataGridItemAdvertisement_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+			ButtonDeleteAd.IsEnabled = DataGridItemAdvertisement.SelectedItems.Count > 0;
+		}
 
+		private void CheckBoxDisableAdDisplay_Checked(object sender, RoutedEventArgs e) {
+			BorderDisableAdDisplay.Background = advertisement.DisableAdDisplay ? Brushes.Yellow : Brushes.Transparent;
 		}
 	}
 }

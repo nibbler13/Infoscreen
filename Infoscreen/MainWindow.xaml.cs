@@ -134,7 +134,7 @@ namespace Infoscreen {
 		private void TimerShowAdvertisement_Tick(object sender, EventArgs e) {
 			Logging.ToLog("MainWindow - Отображение рекламного сообщения");
 
-			if (!advertisement.ShowAd) {
+			if (!advertisement.DisableAdDisplay) {
 				Logging.ToLog("MainWindow - пропуск отображения в соответствии с настройками");
 				return;
 			}

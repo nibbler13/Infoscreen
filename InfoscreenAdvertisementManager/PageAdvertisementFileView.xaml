@@ -8,48 +8,89 @@
       d:DesignHeight="600" 
       d:DesignWidth="1280"
       Title="PageAdvertisementFileView">
-
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        
+    </Page.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
 
-        <CheckBox Content="Отображать информационные сообщения" 
-                  x:Name="CheckBoxShowAd"
-                  IsChecked="{Binding ShowAd, Mode=TwoWay}"
-                  HorizontalAlignment="Right"/>
+        <Border x:Name="BorderDisableAdDisplay" 
+                HorizontalAlignment="Stretch"/>
+        <CheckBox Content="Отключить показ на мониторах всех сообщений" 
+                  x:Name="CheckBoxDisableAdDisplay"
+                  IsChecked="{Binding DisableAdDisplay, Mode=TwoWay}"
+                  HorizontalAlignment="Left"
+                  Margin="10,10,0,10"
+                  Checked="CheckBoxDisableAdDisplay_Checked"
+                  Unchecked="CheckBoxDisableAdDisplay_Checked"/>
 
-        <WrapPanel Grid.Column="1" 
-                   HorizontalAlignment="Center">
-            <TextBlock Text="Время отображения одного сообщения (в секундах):"/>
+        <Grid Grid.Row="1" Margin="10,6,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="6"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Время отображения одного сообщения (в секундах):"
+                       VerticalAlignment="Center"/>
 
-            <TextBox x:Name="TextBoxAdDurationInSeconds"
+            <TextBox Grid.Column="1"
+                     x:Name="TextBoxAdDurationInSeconds"
                      Text="{Binding AdDurationInSeconds, Mode=TwoWay}"
                      Width="60"
-                     Margin="10,0,0,0"/>
-        </WrapPanel>
+                     Margin="10,0,0,0"
+                     IsReadOnly="True"
+                     HorizontalContentAlignment="Right"
+                     VerticalAlignment="Center"/>
 
-        <WrapPanel Grid.Column="2"
-                   HorizontalAlignment="Left">
-            <TextBlock Text="Пауза между отображением сообщений (в секундах):"/>
+            <Slider Grid.Column="2"
+                    Minimum="10"
+                    Maximum="180" 
+                    HorizontalAlignment="Stretch" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Margin="20,0,0,0"
+                    VerticalAlignment="Center"
+                    Value="{Binding AdDurationInSeconds, Mode=TwoWay}"/>
 
-            <TextBox x:Name="TextBoxPauseBetweenAdInSeconds"
+
+            <TextBlock Grid.Row="3" 
+                       Text="Пауза между отображением сообщений (в секундах):"
+                       VerticalAlignment="Center"/>
+
+            <TextBox Grid.Row="3" Grid.Column="1"
+                     x:Name="TextBoxPauseBetweenAdInSeconds"
                      Width="60"
                      Margin="10,0,0,0"
-                     Text="{Binding PauseBetweenAdInSeconds, Mode=TwoWay}"/>
-        </WrapPanel>
+                     Text="{Binding PauseBetweenAdInSeconds, Mode=TwoWay}"
+                     IsReadOnly="True"
+                     HorizontalContentAlignment="Right"
+                     VerticalAlignment="Center"/>
+
+            <Slider Grid.Row="3" 
+                    Grid.Column="2" 
+                    Minimum="10"
+                    Maximum="180" 
+                    HorizontalAlignment="Stretch" 
+                    AutoToolTipPlacement="TopLeft" 
+                    Margin="20,0,0,0"
+                    VerticalAlignment="Center"
+                    Value="{Binding PauseBetweenAdInSeconds, Mode=TwoWay}"/>
+        </Grid>
 
         <GroupBox Header="Информационные сообщения"
-                  Grid.Row="1" 
-                  Margin="0,10,0,0"
-                  Grid.ColumnSpan="3">
+                  Grid.Row="2" 
+                  Margin="0,10,0,0">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -59,9 +100,9 @@
                 <DataGrid ItemsSource="{Binding AdvertisementItems}"
                           AutoGenerateColumns="False"
                           GridLinesVisibility="Horizontal"
-                          x:Name="DataGridItemAdvertisement"
                           HorizontalGridLinesBrush="#FFC8C8C8"
                           VerticalGridLinesBrush="#FFC8C8C8"
+                          x:Name="DataGridItemAdvertisement"
                           SelectionMode="Extended"
                           SelectionUnit="FullRow"
                           CanUserAddRows="False"
@@ -72,17 +113,18 @@
                         <Style TargetType="{x:Type DataGridCell}">
                             <Style.Triggers>
                                 <Trigger Property="DataGridCell.IsSelected" Value="True">
-                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="Background" Value="#FFFAFAFA"/>
+                                    <Setter Property="Foreground" Value="Black"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </DataGrid.Resources>
-                    
+
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Grid HorizontalAlignment="Center">
+                                    <Grid HorizontalAlignment="Stretch">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
@@ -90,44 +132,73 @@
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
+                                        <Border Background="#FFF0F0F0" HorizontalAlignment="Stretch"/>
                                         <WrapPanel HorizontalAlignment="Center" Margin="0,10,0,10">
-                                            <CheckBox Content="Отображать заголовок"/>
+                                            <TextBlock Text="Дата создания: "
+                                                       VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="{Binding DateCreated}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,20,0"/>
+
+                                            <CheckBox Content="Отображать заголовок" 
+                                                      IsChecked="{Binding DisplayTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      VerticalAlignment="Center"/>
+
                                             <CheckBox Content="Отображать постскриптум"
-                                                      Margin="10,0,0,0"/>
-                                            <CheckBox Content="Дата начала отображения"
-                                                      Margin="10,0,0,0"/>
-                                            <DatePicker Margin="6,0,0,0"/>
-                                            <CheckBox Content="Дата окончания отображения"
-                                                      Margin="10,0,0,0"/>
-                                            <DatePicker Margin="6,0,0,0"/>
+                                                      Margin="10,0,0,0" 
+                                                      IsChecked="{Binding DisplayPostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      VerticalAlignment="Center"/>
+
+                                            <CheckBox Content="Дата начала отображения: "
+                                                      Margin="10,0,0,0"
+                                                      IsChecked="{Binding SetDateBegin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      VerticalAlignment="Center"/>
+
+                                            <DatePicker Margin="6,0,0,0" 
+                                                        IsEnabled="{Binding SetDateBegin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        SelectedDate="{Binding DateBegin, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        VerticalAlignment="Center"/>
+
+                                            <CheckBox Content="Дата окончания отображения: "
+                                                      Margin="10,0,0,0" 
+                                                      IsChecked="{Binding SetDateEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      VerticalAlignment="Center"/>
+
+                                            <DatePicker Margin="6,0,0,0"
+                                                        IsEnabled="{Binding SetDateEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        SelectedDate="{Binding DateEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        VerticalAlignment="Center"/>
                                         </WrapPanel>
 
                                         <DockPanel HorizontalAlignment="Center"
                                                    Margin="20,20,20,0"
-                                                   Grid.Row="1">
+                                                   Grid.Row="1"
+                                                   Visibility="{Binding Path=DisplayTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}">
                                             <Image Source="Images/IconInfo.png"
                                                    VerticalAlignment="Center"
                                                    Width="40"
                                                    Height="40"/>
-
                                             <TextBox Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                       FontFamily="Franklin Gothic"
-                                                       Margin="20,0,0,0"
-                                                       TextWrapping="Wrap"
-                                                       TextAlignment="Center"
-                                                       Foreground="#FF2D3D3F"
-                                                       FontSize="50"
-                                                       FontWeight="Light"/>
+                                                         FontFamily="Franklin Gothic"
+                                                         Margin="20,0,0,0"
+                                                         TextWrapping="Wrap"
+                                                         TextAlignment="Center"
+                                                         Foreground="#FF2D3D3F"
+                                                         FontSize="50"
+                                                         FontWeight="Light"
+                                                         MaxLength="{Binding MaxLenghtTitle}"/>
                                         </DockPanel>
-                                        
+
                                         <DockPanel HorizontalAlignment="Center"
                                                    Margin="20,20,20,0"
                                                    Grid.Row="2">
-                                            
+
                                             <Image Source="Images/IconInfo.png"
                                                    VerticalAlignment="Top"
                                                    Width="40"
-                                                   Height="40"/>
+                                                   Height="40"
+                                                   Visibility="{Binding Path=DisplayBodyIcon, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"/>
 
                                             <TextBox Text="{Binding Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                        TextWrapping="Wrap"
@@ -136,18 +207,21 @@
                                                        Foreground="DarkSlateGray"
                                                        HorizontalAlignment="Center"
                                                        TextAlignment="Center" 
-                                                       Margin="20,0,20,10"/>
+                                                       Margin="20,0,20,10"
+                                                     MaxLength="{Binding MaxLenghtBody}"/>
                                         </DockPanel>
 
                                         <TextBox Text="{Binding PostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                   TextWrapping="Wrap"
-                                                   FontFamily="Franklin Gothic Book"
-                                                   FontSize="30"
-                                                   Foreground="Gray"
-                                                   HorizontalAlignment="Center"
-                                                   TextAlignment="Center" 
-                                                   Margin="20,10,20,20"
-                                                   Grid.Row="3"/>
+                                                 TextWrapping="Wrap"
+                                                 FontFamily="Franklin Gothic Book"
+                                                 FontSize="30"
+                                                 Foreground="Gray"
+                                                 HorizontalAlignment="Center"
+                                                 TextAlignment="Center" 
+                                                 Margin="20,10,20,20"
+                                                 Grid.Row="3"
+                                                 Visibility="{Binding Path=DisplayPostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"
+                                                 MaxLength="{Binding Path=MaxLenghtPostScriptum}"/>
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -158,12 +232,12 @@
                 <WrapPanel Grid.Row="1" 
                            HorizontalAlignment="Center" 
                            Margin="10">
-                    
+
                     <Button Content="Добавить" 
                             x:Name="ButtonAddAd" 
                             Click="ButtonAddAd_Click" 
                             Width="80"/>
-                    
+
                     <Button Content="Удалить"
                             IsEnabled="False" 
                             x:Name="ButtonDeleteAd" 
@@ -175,8 +249,7 @@
         </GroupBox>
 
         <Button Content="Сохранить изменения"
-                Grid.Row="2"
-                Grid.ColumnSpan="3"
+                Grid.Row="3"
                 Width="140"
                 Margin="0,10,0,0"
                 x:Name="ButtonSaveChanges"
