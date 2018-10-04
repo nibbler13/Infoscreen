@@ -1,0 +1,230 @@
+﻿<Page x:Class="InfoscreenConfigManager.PageInternalSettings"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:InfoscreenConfigManager"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="800"
+      Title="PageInternalSettings">
+
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.Row="0"
+                  Header="Подключение к БД МИС Инфоклиника">
+            <Grid Margin="6" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Адрес:"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding DataBaseAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <TextBlock Grid.Row="2"
+                           Text="Имя базы:"/>
+                <TextBox Grid.Row="2"
+                         Grid.Column="2"
+                         Text="{Binding DataBaseName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <TextBlock Text="Имя пользователя:"
+                           Grid.Row="0"
+                           Grid.Column="4"/>
+                <TextBox Grid.Row="0"
+                         Grid.Column="6"
+                         Text="{Binding DataBaseUserName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                
+                <TextBlock Text="Пароль:"
+                           Grid.Row="2"
+                           Grid.Column="4"/>
+                <TextBox Grid.Row="2"
+                         Grid.Column="6"
+                         Text="{Binding DataBasePassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Button Content="Проверить подключение" 
+                        Grid.Row="3" 
+                        Grid.ColumnSpan="7" 
+                        Width="150"
+                        x:Name="ButtonCheckDBConnect" 
+                        Click="ButtonCheckDBConnect_Click"
+                        VerticalAlignment="Center"
+                        Margin="0,6,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="6"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0"
+                  Header="Текст запроса на получение данных для обычных кабинетов:">
+                <TextBox Margin="6" 
+                         Text="{Binding DataBaseQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Auto"/>
+            </GroupBox>
+
+            <GridSplitter Grid.Column="1"
+                          ResizeBehavior="PreviousAndNext"
+                          ResizeDirection="Columns" 
+                          Width="2"
+                          HorizontalAlignment="Center"/>
+
+            <GroupBox Grid.Column="2"
+                  Header="Текст запроса на получение данных для расписания:">
+                <TextBox Margin="6" 
+                         Text="{Binding DataBaseQueryTimetable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalScrollBarVisibility="Auto"
+                         VerticalScrollBarVisibility="Auto"/>
+            </GroupBox>
+        </Grid>
+
+        <GroupBox Grid.Row="2"
+                  Header="Таймеры (значения в секундах)"
+                  Margin="0,10,0,0">
+            <Grid Margin="6">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Переключение страниц кресел:"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding ChairPagesRotateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         TextAlignment="Right"
+                         IsReadOnly="True"/>
+                <Slider Grid.Column="4" 
+                        Value="{Binding ChairPagesRotateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="10"
+                        Maximum="30" AutoToolTipPlacement="TopLeft"/>
+
+                <TextBlock Grid.Row="2" 
+                           Text="Переключение страниц расписания:"/>
+                <TextBox Grid.Row="2"
+                         Grid.Column="2"
+                         Text="{Binding TimetableRotateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsReadOnly="True"
+                         TextAlignment="Right"/>
+                <Slider Grid.Row="2"
+                        Grid.Column="4"
+                        Value="{Binding TimetableRotateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="10"
+                        Maximum="60" AutoToolTipPlacement="TopLeft"/>
+
+                <TextBlock Grid.Row="4" 
+                           Text="Обновление данных:" />
+                <TextBox Grid.Row="4"
+                         Grid.Column="2"
+                         Text="{Binding DatabaseQueryExecutionIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         TextAlignment="Right"/>
+                <Slider Grid.Row="4"
+                        Grid.Column="4"
+                        Value="{Binding DatabaseQueryExecutionIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="1"
+                        Maximum="30" AutoToolTipPlacement="TopLeft"/>
+
+                <TextBlock Grid.Row="6"
+                           Text="Обновление фотографий:"/>
+                <TextBox Grid.Row="6" 
+                         Grid.Column="2"
+                         Text="{Binding DoctorsPhotoUpdateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         TextAlignment="Right"/>
+                <Slider Grid.Row="6"
+                        Grid.Column="4"
+                        Value="{Binding DoctorsPhotoUpdateIntervalInSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="600"
+                        Maximum="21600" AutoToolTipPlacement="TopLeft"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Папка с фотографиями сотрудников"
+                  Grid.Row="3" 
+                  Margin="0,10,0,0">
+            <Grid Margin="6" 
+                  VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding PhotosFolderPath}"
+                         IsReadOnly="True"/>
+
+                <Button Content="Выбрать"
+                        Grid.Column="1"
+                        Margin="6,0,0,0"
+                        Width="60" 
+                        x:Name="ButtonSelectPhotosFolder"
+                        Click="ButtonSelectPhotosFolder_Click"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="4"
+                  Header="Подразделение в ActiveDirectory:"
+                  Margin="0,10,0,0">
+            <Grid Margin="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding ActiveDirectoryOU}"
+                         IsReadOnly="True"/>
+
+                <Button Grid.Column="1"
+                        Content="Выбрать"
+                        Width="60"
+                        Margin="6,0,0,0"
+                        x:Name="ButtonSelectActiveDirectoryOU"
+                        Click="ButtonSelectActiveDirectoryOU_Click"/>
+            </Grid>
+        </GroupBox>
+
+        <Button Grid.Row="5"
+                Content="Назад"
+                Width="60"
+                Margin="0,10,0,10"
+                Click="ButtonBack_Click"
+                HorizontalAlignment="Left"/>
+
+        <Button Grid.Row="5"
+                Content="Сохранить изменения"
+                Width="140"
+                Margin="0,10,0,10"
+                Click="ButtonSaveConfig_Click"/>
+        
+    </Grid>
+</Page>

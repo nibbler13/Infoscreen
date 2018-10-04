@@ -30,7 +30,7 @@ namespace InfoscreenConfigManager {
 
 			Infoscreen.Configuration configuration = null;
 			await Task.Run(() => {
-				Infoscreen.Configuration.GetConfiguration(
+				Infoscreen.Configuration.LoadConfiguration(
 					cofigFilePath, out configuration);
 			});
 

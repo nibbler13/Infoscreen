@@ -57,7 +57,7 @@ namespace Infoscreen {
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
 			await Task.Run(() => {
-				Configuration.GetConfiguration(configFilePath, out configuration);
+				Configuration.LoadConfiguration(configFilePath, out configuration);
 			});
 
 			DispatcherTimer timerSecondsTick = new DispatcherTimer();
@@ -101,7 +101,7 @@ namespace Infoscreen {
 			timerUpdatePhotos.Start();
 
 			await Task.Run(() => {
-				Advertisement.GetAdvertisement(string.Empty, out advertisement);
+				Advertisement.LoadAdvertisement(string.Empty, out advertisement);
 			});
 
 			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");

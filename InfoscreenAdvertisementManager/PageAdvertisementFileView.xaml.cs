@@ -28,9 +28,43 @@ namespace InfoscreenAdvertisementManager {
 			DataGridItemAdvertisement.Items.Clear();
 			DataGridItemAdvertisement.DataContext = advertisement;
 			CheckBoxDisableAdDisplay_Checked(CheckBoxDisableAdDisplay, new RoutedEventArgs());
+			Application.Current.MainWindow.Closing += MainWindow_Closing;
+			Loaded += (s, e) => { advertisement.MarkAsSaved(); };
+		}
+
+		private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+			if (advertisement.IsNeedToSave()) {
+				MessageBoxResult result =  MessageBox.Show(Application.Current.MainWindow, 
+					"Сохранить изменения?", "Имеются несохраненные изменения", 
+					MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+
+				if (result == MessageBoxResult.No)
+					return;
+
+
+				if (result == MessageBoxResult.Cancel) {
+					e.Cancel = true;
+					return;
+				}
+
+				ButtonSaveChanges_Click(null, null);
+
+				if (advertisement.IsNeedToSave())
+					e.Cancel = true;
+
+			}
 		}
 
 		private void ButtonSaveChanges_Click(object sender, RoutedEventArgs e) {
+			if (!advertisement.IsAdItemsCorrect(out string incorrectItems)) {
+				MessageBox.Show(
+					Application.Current.MainWindow, 
+					"Имеются сообщения, требующие корректировки: " + 
+					Environment.NewLine + incorrectItems, "Сохранение невозможно", 
+					MessageBoxButton.OK, MessageBoxImage.Error);
+				return;
+			}
+
 			if (advertisement.SaveAdvertisements(out string error))
 				MessageBox.Show(Application.Current.MainWindow, "Изменения успешно сохранены", "",
 					MessageBoxButton.OK, MessageBoxImage.Information);

@@ -46,7 +46,7 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-            : System.Serialization.Formatters.Binary.BinaryFormatter
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
@@ -60,6 +60,7 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
@@ -68,9 +69,10 @@
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="name" use="required" type="xsd:string" />
               <xsd:attribute name="type" type="xsd:string" />
               <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="assembly">
@@ -85,9 +87,10 @@
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
               <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
               <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -109,9 +112,129 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="SqlQueryMain" xml:space="preserve">
+    <value>/*changelog:
+ver 0.03
+1)	Исправлена ошибка при которой в некоторых ситуациях не отображалась инфо о докторе
+2)	Должность врача в настоящей версии берется из справочника
+3)	Удалён рейтинг врача
+ver 0.02
+1)	Приглашение на приём - возвращается только имя + отчество
+2)	Добавлен рейтинг врача - поле DSINFO 4 колонка
+3)	Исправлена ошибка, когда при статусе «Идёт приём» в поле timeleft отображалось 0 мин.
+*/ --ver 0.03
+WITH a AS (
+SELECT chid,
+       x.rnum,
+       CASE
+           WHEN x.starttreat=1
+                AND x.isdelay=1 THEN 10 --'Приём задерживается'
+
+           WHEN x.starttreat=1
+                AND x.isdelay=0 THEN 20 --'Идёт приём'
+
+           WHEN x.starttreat=0
+                AND x.actual=1
+                AND x.sortactual=1 THEN 30 --'Пройдите на приём'
+
+           WHEN x.starttreat=0
+                AND x.actual=1
+                AND x.sortactual=0 THEN 31 --'Пройдите на приём'
+
+           WHEN x.DSINFO IS NOT NULL THEN 40 --'Кабинет свободен'
+
+           ELSE 50 --'Нет приёма'
+
+       END status,
+       iif(x.starttreat=0
+           AND x.actual=1,
+             (SELECT firstname||' '||midname
+              FROM clients
+              WHERE pcode=x.pcode),NULL) acfullname /*при 'Пройдите на приём'*/ ,
+       iif(x.starttreat=1
+           AND x.isdelay=0
+           AND et-ct&lt;et-st, et-ct-1, NULL) timeleft /*при 'Идёт приём'*/ ,
+       x.DSINFO
+FROM (
+SELECT c.chid,
+       c.ct,
+       s.st,
+       s.et,
+       s.pcode,
+       c.rnum,
+       iif(c.ct-st&gt;
+
+=0
+AND c.ct-et&lt;0,
+    1,
+    0) SORTACTUAL,
+       iif(c.ct-st&gt;
+
+=-5
+AND c.ct-et&lt;0,
+    1,
+    0) ACTUAL /*ACTUAL (c.ct-st&gt;=_ приглашать за _ мин до начала приема, c.ct-et&lt;_ мин после конца приёма) !изменяются синхронно! */ ,
+       iif(s.starttreat IS NULL, 0, 1) starttreat,
+       iif(s.et&lt;=c.ct+1, 1, 0) isdelay,
+
+  (SELECT list(d.fullname, '@') ||'|'|| list(profname, '@') ||'|'|| list(depname, '@') ||'|'|| lpad(cast(min(beghour||':'||begmin) AS TIME), 5)||' - '||lpad(cast(min(endhour||':'||endmin) AS TIME), 5) INFO
+   FROM doctshedule ds
+   JOIN doctor d ON d.dcode=ds.dcode
+   JOIN departments dp ON dp.depnum=d.depnum
+   JOIN profession p ON p.profid=d.profid
+   WHERE ds.chair=c.chid
+     AND ds.wdate=CURRENT_DATE
+     AND (beghour*60+begmin)-5&lt;=c.ct /*(beghour*60+begmin)-5 (приглашать за 5 мин до начала приема)*/
+     AND (endhour*60+endmin)&gt;c.ct ) DSINFO
+FROM
+  (SELECT id chid,
+
+     (SELECT r.rnum
+      FROM chairs ch
+      JOIN
+        (SELECT rid,
+                rnum
+         FROM rooms) r ON r.rid=ch.rid
+      WHERE ch.chid=id) rnum,
+          extract(hour
+                  FROM CURRENT_TIME)*60+extract(MINUTE
+                                                FROM CURRENT_TIME) ct
+   FROM mrgetlist(@chairList)) c
+LEFT JOIN
+  (SELECT bhour*60+bmin ST,
+          fhour*60+fmin ET,
+          s1.*
+   FROM schedule s1) s ON s.chid=c.chid
+AND s.workdate=CURRENT_DATE
+AND s.pcode&lt;&gt;-1
+AND s.finishtreat IS NULL
+AND s.clvisit=1 ) x ) /*-------------------END WITH-------------------*/
+SELECT a.chid,
+       a.rnum,
+       a.status,
+       a.acfullname,
+       a.timeleft,
+       a.dsinfo
+FROM a
+JOIN
+  (SELECT chid,
+          min(status) status
+   FROM a
+   GROUP BY 1) srt ON srt.chid=a.chid
+AND srt.status=a.status
+GROUP BY 1,
+         2,
+         3,
+         4,
+         5,
+         6</value>
+  </data>
+  <data name="SqlQueryTimetable" xml:space="preserve">
+    <value />
+  </data>
 </root>

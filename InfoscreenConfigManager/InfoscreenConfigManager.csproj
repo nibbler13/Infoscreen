@@ -61,6 +61,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PageInternalSettings.xaml.cs">
+      <DependentUpon>PageInternalSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WindowEnterPassword.xaml.cs">
+      <DependentUpon>WindowEnterPassword.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WindowSelectAdOu.xaml.cs">
       <DependentUpon>WindowSelectAdOu.xaml</DependentUpon>
     </Compile>
@@ -84,6 +90,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PageConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PageInternalSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WindowEnterPassword.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -134,6 +148,10 @@
       <Project>{1086e9d8-3f95-46ea-aa1e-8d6dc6647b70}</Project>
       <Name>Infoscreen</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Media\Key.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

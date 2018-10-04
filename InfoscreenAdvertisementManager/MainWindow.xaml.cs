@@ -30,7 +30,7 @@ namespace InfoscreenAdvertisementManager {
 
 			Infoscreen.Advertisement advertisement = null;
 			await Task.Run(() => {
-				Infoscreen.Advertisement.GetAdvertisement(
+				Infoscreen.Advertisement.LoadAdvertisement(
 					adFilePath, out advertisement);
 			});
 

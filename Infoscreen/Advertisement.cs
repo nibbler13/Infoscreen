@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Media;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -14,9 +15,19 @@ namespace Infoscreen {
 		public event PropertyChangedEventHandler PropertyChanged;
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			IsSaved = false;
 		}
 
-		public bool DisableAdDisplay { get; set; }
+		private bool disableAdDisplay;
+		public bool DisableAdDisplay {
+			get { return disableAdDisplay; }
+			set {
+				if (value != disableAdDisplay) {
+					disableAdDisplay = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
 
 		private int pauseBetweenAdInSeconds;
 		public int PauseBetweenAdInSeconds {
@@ -47,7 +58,7 @@ namespace Infoscreen {
 			new ObservableCollection<ItemAdvertisement>();
 
 		private int CurrentAdvertisementIndex { get; set; } = 0;
-
+		private bool IsSaved = false;
 
 
 		public Advertisement() {
@@ -60,7 +71,7 @@ namespace Infoscreen {
 
 
 
-		public static bool GetAdvertisement(string adFilePath, out Advertisement advertisement) {
+		public static bool LoadAdvertisement(string adFilePath, out Advertisement advertisement) {
 			advertisement = new Advertisement();
 
 			if (!File.Exists(adFilePath))
@@ -85,6 +96,74 @@ namespace Infoscreen {
 			return false;
 		}
 
+		public void MarkAsSaved() {
+			IsSaved = true;
+
+			for (int i = 0; i < AdvertisementItems.Count; i++)
+				AdvertisementItems[i].HasChanged = false;
+		}
+
+		public bool IsNeedToSave() {
+			bool isAllItemsHasntChanges = true;
+
+			foreach (ItemAdvertisement item in AdvertisementItems)
+				if (item.HasChanged) {
+					isAllItemsHasntChanges = false;
+					break;
+				}
+
+			return !IsSaved || !isAllItemsHasntChanges;
+		}
+
+		public bool IsAdItemsCorrect(out string error) {
+			error = string.Empty;
+			bool result = true;
+
+			foreach (ItemAdvertisement item in AdvertisementItems) {
+				if (!item.HasChanged)
+					continue;
+
+				string head = "Сообщение от " + item.DateCreated + ": ";
+				string internalError = string.Empty;
+
+				if ((item.DisplayTitle && item.TitleSymbolsCountBackground == Brushes.Yellow) ||
+					item.BodySymbolsCountBackground == Brushes.Yellow ||
+					(item.DisplayPostScriptum && item.PostScriptumSymbolsCountBackground == Brushes.Yellow)) {
+					internalError +=  "некорректное количество символов (выделено желтым)" + Environment.NewLine;
+					result = false;
+				}
+
+				if (item.SetDateBegin && item.DateBegin == null) {
+					internalError += "не выбрана дата начала отображения" + Environment.NewLine;
+					result = false;
+				}
+
+				if (item.SetDateEnd && item.DateEnd == null) {
+					internalError += "не выбрана дата окончания отображения" + Environment.NewLine;
+					result = false;
+				}
+
+				if (item.SetDateBegin && item.SetDateEnd &&
+					item.DateBegin.HasValue && item.DateEnd.HasValue && 
+					(item.DateEnd.Value <= item.DateBegin.Value)) {
+					internalError += "дата окончания меньше или равна дате начала отображения" + Environment.NewLine;
+					result = false;
+				}
+
+				if ((item.DisplayTitle && item.Title.Equals(ItemAdvertisement.TITLE_TEMPLATE)) ||
+					item.Body.Equals(ItemAdvertisement.BODY_TEMPLATE) ||
+					(item.DisplayPostScriptum && item.PostScriptum.Equals(ItemAdvertisement.POSTSCRIPTUM_TEMPLATE))) {
+					internalError += "текст сообщения не заполнен";
+					result = false;
+				}
+
+				if (!string.IsNullOrEmpty(internalError))
+					error += head + Environment.NewLine + internalError;
+			}
+
+			return result;
+		}
+
 		public bool SaveAdvertisements(out string error) {
 			error = string.Empty;
 
@@ -94,8 +173,9 @@ namespace Infoscreen {
 				xmlSerializer.Serialize(textWriter, this);
 				textWriter.Close();
 
+				IsSaved = true;
 				foreach (ItemAdvertisement item in AdvertisementItems)
-					item.IsItemChanged = false;
+					item.HasChanged = false;
 
 				return true;
 			} catch (Exception e) {
@@ -122,8 +202,13 @@ namespace Infoscreen {
 			public event PropertyChangedEventHandler PropertyChanged;
 			private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-				IsItemChanged = true;
+				HasChanged = true;
 			}
+
+			public const string TITLE_TEMPLATE = "Заголовок";
+			public const string BODY_TEMPLATE = "Основной текст";
+			public const string POSTSCRIPTUM_TEMPLATE = "Постскриптум";
+
 
 			private bool displayTitle = true;
 			public bool DisplayTitle {
@@ -133,7 +218,7 @@ namespace Infoscreen {
 						displayTitle = value;
 						NotifyPropertyChanged();
 						NotifyPropertyChanged("DisplayBodyIcon");
-						MaxLenghtBody += value ? -50 : 50;
+						MaxLenghtBody += value ? -40 : 40;
 					}
 				}
 			}
@@ -149,7 +234,7 @@ namespace Infoscreen {
 					if (value != displayPostScriptum) {
 						displayPostScriptum = value;
 						NotifyPropertyChanged();
-						MaxLenghtBody += value ? -60 : 60;
+						MaxLenghtBody += value ? -50 : 50;
 					}
 				}
 			}
@@ -175,10 +260,42 @@ namespace Infoscreen {
 					}
 				}
 			}
+			
+			private string title = TITLE_TEMPLATE;
+			public string Title {
+				get { return title; }
+				set {
+					if (value != title) {
+						title = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("TitleSymbolsCount");
+					}
+				}
+			}
 
-			public string Title { get; set; } = "Заголовок";
-			public string Body { get; set; } = "Основной текст";
-			public string PostScriptum { get; set; } = "Постскриптум";
+			private string body = BODY_TEMPLATE;
+			public string Body {
+				get { return body; }
+				set {
+					if (value != body) {
+						body = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("BodySymbolsCount");
+					}
+				}
+			}
+
+			private string postScriptum = POSTSCRIPTUM_TEMPLATE;
+			public string PostScriptum {
+				get { return postScriptum; }
+				set {
+					if (value != postScriptum) {
+						postScriptum = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("PostScriptumSymbolsCount");
+					}
+				}
+			}
 
 			public DateTime? DateBegin { get; set; } = null;
 			public DateTime? DateEnd { get; set; } = null;
@@ -190,17 +307,19 @@ namespace Infoscreen {
 					if (value != maxLenghtTitle) {
 						maxLenghtTitle = value;
 						NotifyPropertyChanged();
+						NotifyPropertyChanged("TitleSymbolsCount");
 					}
 				}
 			}
 
-			private int maxLenghtBody = 100;
+			private int maxLenghtBody = 120;
 			public int MaxLenghtBody {
 				get { return maxLenghtBody; }
 				set {
 					if (value != maxLenghtBody) {
 						maxLenghtBody = value;
 						NotifyPropertyChanged();
+						NotifyPropertyChanged("BodySymbolsCount");
 					}
 				}
 			}
@@ -212,13 +331,76 @@ namespace Infoscreen {
 					if (value != maxLenghtPostScriptum) {
 						maxLenghtPostScriptum = value;
 						NotifyPropertyChanged();
+						NotifyPropertyChanged("PostScriptumSymbolsCount");
 					}
+				}
+			}
+
+
+			public string TitleSymbolsCount {
+				get {
+					NotifyPropertyChanged("TitleSymbolsCountBackground");
+					return Title.Length + "/" + MaxLenghtTitle;
+				}
+			}
+
+			public string BodySymbolsCount {
+				get {
+					NotifyPropertyChanged("BodySymbolsCountBackground");
+					return Body.Length + "/" + MaxLenghtBody;
+				}
+			}
+
+			public string PostScriptumSymbolsCount {
+				get {
+					NotifyPropertyChanged("PostScriptumSymbolsCountBackground");
+					return PostScriptum.Length + "/" + MaxLenghtPostScriptum;
+				}
+			}
+
+
+			public Brush TitleSymbolsCountBackground {
+				get {
+					if (Title.Length == 0) {
+						return Brushes.Yellow;
+					} else if (Title.Length < MaxLenghtTitle)
+						return Brushes.White;
+					else if (Title.Length == MaxLenghtTitle)
+						return Brushes.LightGreen;
+					else
+						return Brushes.Yellow;
+				}
+			}
+
+			public Brush BodySymbolsCountBackground {
+				get {
+					if (Body.Length == 0) {
+						return Brushes.Yellow;
+					} else if (Body.Length < MaxLenghtBody)
+						return Brushes.White;
+					else if (Body.Length == MaxLenghtBody)
+						return Brushes.LightGreen;
+					else
+						return Brushes.Yellow;
+				}
+			}
+
+			public Brush PostScriptumSymbolsCountBackground {
+				get {
+					if (PostScriptum.Length == 0) {
+						return Brushes.Yellow;
+					} else if (PostScriptum.Length < MaxLenghtPostScriptum)
+						return Brushes.White;
+					else if (PostScriptum.Length == MaxLenghtPostScriptum)
+						return Brushes.LightGreen;
+					else
+						return Brushes.Yellow;
 				}
 			}
 
 			public int OrderNumber { get; set; }
 			public string DateCreated { get; set; }
-			public bool IsItemChanged = false;
+			public bool HasChanged = false;
 
 			public ItemAdvertisement() {
 				Random random = new Random();

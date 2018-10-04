@@ -108,7 +108,7 @@
                           CanUserAddRows="False"
                           CanUserDeleteRows="False"
                           HeadersVisibility="None"
-                          SelectionChanged="DataGridItemAdvertisement_SelectionChanged">
+                          SelectionChanged="DataGridItemAdvertisement_SelectionChanged" Background="Gainsboro">
                     <DataGrid.Resources>
                         <Style TargetType="{x:Type DataGridCell}">
                             <Style.Triggers>
@@ -126,6 +126,7 @@
                                 <DataTemplate>
                                     <Grid HorizontalAlignment="Stretch">
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
@@ -222,6 +223,59 @@
                                                  Grid.Row="3"
                                                  Visibility="{Binding Path=DisplayPostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"
                                                  MaxLength="{Binding Path=MaxLenghtPostScriptum}"/>
+
+                                        <WrapPanel Grid.Row="4" HorizontalAlignment="Center">
+                                            <TextBlock Text="Количество символов - " VerticalAlignment="Center"/>
+                                            
+                                            <WrapPanel Background="{Binding TitleSymbolsCountBackground, Mode=OneWay}" Margin="0,0,10,0">
+                                                <TextBlock Text="Заголовок: "
+                                                               Margin="2"
+                                                               VerticalAlignment="Center"
+                                                               Visibility="{Binding Path=DisplayTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged,
+                                                                    Converter={StaticResource BoolToVisConverter}}"/>
+
+                                                <TextBox Text="{Binding TitleSymbolsCount, Mode=OneWay}"
+                                                             Width="50"
+                                                             VerticalAlignment="Center"
+                                                             IsReadOnly="True"
+                                                             Margin="2" 
+                                                             TextAlignment="Center"
+                                                             Visibility="{Binding Path=DisplayTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged,
+                                                                    Converter={StaticResource BoolToVisConverter}}"/>
+                                            </WrapPanel>
+
+
+                                            <WrapPanel Background="{Binding BodySymbolsCountBackground, Mode=OneWay}" Margin="0,0,10,0">
+                                                <TextBlock Text="Основной текст: "
+                                                           Margin="2"
+                                                           VerticalAlignment="Center"/>
+
+                                                <TextBox Text="{Binding BodySymbolsCount, Mode=OneWay}"
+                                                         Width="50"
+                                                         IsReadOnly="True" 
+                                                         Margin="2"
+                                                         VerticalAlignment="Center"
+                                                         TextAlignment="Center"/>
+                                            </WrapPanel>
+
+                                            <WrapPanel Background="{Binding PostScriptumSymbolsCountBackground, Mode=OneWay}" Margin="0,0,10,0">
+                                                <TextBlock Text="Постскриптум: "
+                                                           Margin="2"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding Path=DisplayPostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
+                                                                Converter={StaticResource BoolToVisConverter}}"/>
+
+                                                <TextBox Text="{Binding PostScriptumSymbolsCount, Mode=OneWay}"
+                                                         Width="50"
+                                                         Margin="2"
+                                                         VerticalAlignment="Center"
+                                                         IsReadOnly="True" 
+                                                         TextAlignment="Center"
+                                                         Visibility="{Binding Path=DisplayPostScriptum, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
+                                                                Converter={StaticResource BoolToVisConverter}}"/>
+                                            </WrapPanel>
+
+                                        </WrapPanel>
                                     </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>

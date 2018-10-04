@@ -6,9 +6,9 @@
         xmlns:local="clr-namespace:InfoscreenConfigManager"
         mc:Ignorable="d"
         Title="Infoscreen Config Manager" 
-        Height="600" 
+        Height="800" 
         Width="800"
-        MinHeight="600"
+        MinHeight="800"
         MinWidth="800"
         WindowStartupLocation="CenterScreen">
     <Grid Margin="10">

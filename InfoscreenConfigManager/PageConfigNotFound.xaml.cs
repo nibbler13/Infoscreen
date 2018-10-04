@@ -34,7 +34,7 @@ namespace InfoscreenConfigManager {
 				return;
 
 			Infoscreen.Configuration configuration = new Infoscreen.Configuration();
-			Infoscreen.Configuration.GetConfiguration(openFileDialog.FileName, out configuration);
+			Infoscreen.Configuration.LoadConfiguration(openFileDialog.FileName, out configuration);
 
 			if (configuration.IsConfigReadedSuccessfull) {
 				PageConfigView pageConfigView = new PageConfigView(configuration);

@@ -27,118 +27,48 @@ namespace InfoscreenConfigManager {
 	/// <summary>
 	/// Логика взаимодействия для PageConfigView.xaml
 	/// </summary>
-	public partial class PageConfigView : Page, INotifyPropertyChanged {
-		public event PropertyChangedEventHandler PropertyChanged;
+	public partial class PageConfigView : Page {
 		private Infoscreen.FirebirdClient firebirdClient;
+		private bool isAuthorized = false;
 
-		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
-
-		public string ChairsRotateIntervalInSeconds { get; set; }
-		public string TimetableRotateIntervalInSeconds { get; set; }
-
-		private string photosFolderPath;
-		public string PhotosFolderPath {
-			get { return photosFolderPath; }
-			set {
-				if (value != photosFolderPath) {
-					photosFolderPath = value;
-					NotifyPropertyChanged();
-				}
-			}
-		}
-
-		public string PhotosUpdateIntervalInSeconds { get; set; }
-
-		private string databaseAddress;
-		public string DatabaseAddress {
-			get { return databaseAddress; }
-			set {
-				if (value != databaseAddress) {
-					databaseAddress = value;
-					UpdateFirebirdClientInstance();
-				}
-			}
-		}
-
-		private string databaseName;
-		public string DatabaseName {
-			get { return databaseName; }
-			set {
-				if (value != databaseName) {
-					databaseName = value;
-					UpdateFirebirdClientInstance();
-				}
-			}
-		}
-
-		private readonly string QUERY_GET_CHAIRS = 
-			Properties.Settings.Default.DataBaseSqlQueryGetChairs;
-
-		private List<Infoscreen.Configuration.ItemSystem.ItemChair> chairItems =
+		private List<Infoscreen.Configuration.ItemSystem.ItemChair> chairItemsCache =
 			new List<Infoscreen.Configuration.ItemSystem.ItemChair>();
-
-		public string DatabaseUpdateIntervalInSeconds { get; set; }
-
-		public ObservableCollection<Infoscreen.Configuration.ItemSystem> SystemItems { get; set; } =
-			new ObservableCollection<Infoscreen.Configuration.ItemSystem>();
-
-		private static readonly Regex regexDigitOnly = new Regex("[^0-9]");
-
-		private string activeDirectoryOU;
-		public string ActiveDirectoryOU {
-			get { return activeDirectoryOU; }
-			set {
-				if (value != activeDirectoryOU) {
-					activeDirectoryOU = value;
-					NotifyPropertyChanged();
-				}
-			}
-		}
 
 		private Infoscreen.Configuration configuration;
 
 
 
-
-
 		public PageConfigView(Infoscreen.Configuration configuration) {
 			InitializeComponent();
-
+			KeepAlive = true;
 			this.configuration = configuration;
-			
-			DataGridItemSystem.DataContext = this;
-
-			ChairsRotateIntervalInSeconds = configuration.ChairPagesRotateIntervalInSeconds.ToString();
-			TimetableRotateIntervalInSeconds = configuration.TimetableRotateIntervalInSeconds.ToString();
-			PhotosFolderPath = configuration.PhotosFolderPath;
-			PhotosUpdateIntervalInSeconds = configuration.DoctorsPhotoUpdateIntervalInSeconds.ToString();
-			DatabaseAddress = configuration.DataBaseAddress;
-			DatabaseName = configuration.DataBaseName;
-			DatabaseUpdateIntervalInSeconds = configuration.DatabaseQueryExecutionIntervalInSeconds.ToString();
-			ActiveDirectoryOU = configuration.ActiveDirectoryOU;
-
+			DataGridItemSystem.DataContext = configuration;
 			DataContext = this;
-
 			Loaded += PageConfigView_Loaded;
 		}
 
 
 
-
-
-		private async void UpdateFirebirdClientInstance() {
+		private void PageConfigView_Loaded(object sender, RoutedEventArgs e) {
+			UpdateChairItems();
+			UpdateSystemItems();
+		}
+		
+		private async void UpdateChairItems() {
 			firebirdClient = null;
-			chairItems.Clear();
+			chairItemsCache.Clear();
 
-			if (string.IsNullOrEmpty(DatabaseAddress) ||
-				string.IsNullOrEmpty(DatabaseName))
+			if (string.IsNullOrEmpty(configuration.DataBaseAddress) ||
+				string.IsNullOrEmpty(configuration.DataBaseName)) {
+				MessageBox.Show(Application.Current.MainWindow,
+					"Не заданы параметры подключения к БД в разделе 'Внутренние настройки'", 
+					"Ошибка конфигурации", MessageBoxButton.OK, MessageBoxImage.Error);
 				return;
+			}
 
 			firebirdClient = new Infoscreen.FirebirdClient(
-				DatabaseAddress,
-				DatabaseName,
+				configuration.DataBaseAddress,
+				configuration.DataBaseName,
 				configuration.DataBaseUserName,
 				configuration.DataBasePassword);
 
@@ -148,24 +78,53 @@ namespace InfoscreenConfigManager {
 			await Task.Run(() => { GetChairItems(); });
 		}
 
-		private static bool IsTextAllowed(Key key) {
-			return key >= Key.D0 && key <= Key.D9 || key == Key.Delete || key == Key.Back;
+		private void GetChairItems() {
+			DataTable dataTable = firebirdClient.GetDataTable(
+				Properties.Settings.Default.DataBaseSqlQueryGetChairs,
+				new Dictionary<string, object>());
+
+			if (dataTable.Rows.Count == 0) {
+					MessageBox.Show(Window.GetWindow(this),
+						"Не удалось получить список кресел. Проверьте подключение к БД в разделе 'Внутренние настройки'.",
+						"Ошибка БД", MessageBoxButton.OK, MessageBoxImage.Warning);
+				return;
+			}
+
+			foreach (DataRow row in dataTable.Rows) {
+				try {
+					string chid = row["CHID"].ToString();
+					string chname = row["CHNAME"].ToString();
+					string rnum = row["RNUM"].ToString();
+					string rname = row["RNAME"].ToString();
+
+					Infoscreen.Configuration.ItemSystem.ItemChair chair = new Infoscreen.Configuration.ItemSystem.ItemChair() {
+						ChairID = chid,
+						ChairName = chname,
+						RoomNumber = rnum,
+						RoomName = rname
+					};
+
+					Application.Current.Dispatcher.BeginInvoke((Action)(() => { chairItemsCache.Add(chair); }));
+				} catch (Exception exc) {
+					MessageBox.Show(Application.Current.MainWindow, 
+						exc.Message + Environment.NewLine + exc.StackTrace, "", 
+						MessageBoxButton.OK, MessageBoxImage.Error);
+				}
+			}
 		}
-
-		private void PageConfigView_Loaded(object sender, RoutedEventArgs e) {
-			UpdateSystemItems();
-		}
-
-
 
 		private async void UpdateSystemItems() {
-			SystemItems.Clear();
+			configuration.SystemItems.Clear();
 
-			if (string.IsNullOrEmpty(ActiveDirectoryOU))
+			if (string.IsNullOrEmpty(configuration.ActiveDirectoryOU)) {
+				MessageBox.Show(Application.Current.MainWindow, 
+					"Не выбрано подразделение ActiveDirectory в разделе 'Внутренние настройки'", "Ошибка конфигурации",
+					MessageBoxButton.OK, MessageBoxImage.Error);
 				return;
+			}
 
 			await Task.Run(() => {
-				string searchPath = "LDAP://" + ActiveDirectoryOU;
+				string searchPath = "LDAP://" + configuration.ActiveDirectoryOU;
 
 				try {
 					using (DirectoryEntry entry = new DirectoryEntry(searchPath)) {
@@ -182,7 +141,7 @@ namespace InfoscreenConfigManager {
 
 									Infoscreen.Configuration.ItemSystem itemSystem = new Infoscreen.Configuration.ItemSystem() {
 										SystemName = name,
-										SystemUnit = dn.Replace(ActiveDirectoryOU, "").
+										SystemUnit = dn.Replace(configuration.ActiveDirectoryOU, "").
 													Replace("CN=" + name + ",", "").
 													TrimEnd(',').
 													TrimStart(new char[] { 'O', 'U', '=' }).
@@ -205,7 +164,7 @@ namespace InfoscreenConfigManager {
 										Console.WriteLine(excInner.Message + Environment.NewLine + excInner.StackTrace);
 									}
 
-									Application.Current.Dispatcher.BeginInvoke((Action)(() => { SystemItems.Add(itemSystem); }));
+									Application.Current.Dispatcher.BeginInvoke((Action)(() => { configuration.SystemItems.Add(itemSystem); }));
 								} catch (Exception exc) {
 									Console.WriteLine(exc.Message + Environment.NewLine + exc.StackTrace);
 								}
@@ -218,93 +177,18 @@ namespace InfoscreenConfigManager {
 			});
 		}
 
-		private void GetChairItems(bool showWarning = false) {
-			DataTable dataTable = firebirdClient.GetDataTable(QUERY_GET_CHAIRS, new Dictionary<string, object>());
-
-			if (dataTable.Rows.Count == 0) {
-				if (showWarning)
-					MessageBox.Show(Window.GetWindow(this), "Не удалось получить список кресел. Проверьте подключение к БД.", "Ошибка БД",
-						MessageBoxButton.OK, MessageBoxImage.Warning);
-				return;
-			}
-
-			foreach (DataRow row in dataTable.Rows) {
-				try {
-					string chid = row["CHID"].ToString();
-					string chname = row["CHNAME"].ToString();
-					string rnum = row["RNUM"].ToString();
-					string rname = row["RNAME"].ToString();
-
-					Infoscreen.Configuration.ItemSystem.ItemChair chair = new Infoscreen.Configuration.ItemSystem.ItemChair() {
-						ChairID = chid,
-						ChairName = chname,
-						RoomNumber = rnum,
-						RoomName = rname
-					};
-
-					Application.Current.Dispatcher.BeginInvoke((Action)(() => { chairItems.Add(chair); }));
-				} catch (Exception exc) {
-					Console.WriteLine(exc.Message + Environment.NewLine + exc.StackTrace);
-				}
-			}
-		}
-
-
-
-		private void ButtonCheckDBConnect_Click(object sender, RoutedEventArgs e) {
-			if (firebirdClient == null)
-				firebirdClient = new Infoscreen.FirebirdClient(
-					DatabaseAddress,
-					DatabaseName,
-					configuration.DataBaseUserName,
-					configuration.DataBasePassword);
-
-			if (firebirdClient.IsDbAvailable())
-				MessageBox.Show(Window.GetWindow(this), "Соединение выполнено успешно", "",
-					MessageBoxButton.OK, MessageBoxImage.Information);
-			else
-				MessageBox.Show(Window.GetWindow(this), "Не удалось выполнить тестовый запрос. " +
-					"Подробности можно узнать в журнале работы, расположенном в папке с программой.", "",
-					MessageBoxButton.OK, MessageBoxImage.Error);
-		}
-
-		private void ButtonSelectPhotosFolder_Click(object sender, RoutedEventArgs e) {
-			using (CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog()) {
-				openFileDialog.IsFolderPicker = true;
-
-				if (!string.IsNullOrEmpty(PhotosFolderPath))
-					openFileDialog.InitialDirectory = PhotosFolderPath;
-
-				if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
-					PhotosFolderPath = openFileDialog.FileName;
-			}
-		}
-
-		private void ButtonSelectActiveDirectoryOU_Click(object sender, RoutedEventArgs e) {
-			if (!string.IsNullOrEmpty(ActiveDirectoryOU)) {
-				if (MessageBox.Show(Window.GetWindow(this), "При смене подразделения ActiveDirectory будет заменен весь текущий " +
-					"список соответствия кресел. Продолжить?", "", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.No)
-					return;
-			}
-
-			WindowSelectAdOu windowSelectAdOu = new WindowSelectAdOu(ActiveDirectoryOU);
-			windowSelectAdOu.Owner = Window.GetWindow(this);
-
-			if (windowSelectAdOu.ShowDialog() == true) {
-				ActiveDirectoryOU = windowSelectAdOu.SelectedOU;
-				UpdateSystemItems();
-			}
-		}
-
 		private void ButtonEditChairs_Click(object sender, RoutedEventArgs e) {
 			if (firebirdClient == null)
-				firebirdClient = new Infoscreen.FirebirdClient(DatabaseAddress, DatabaseName,
-					configuration.DataBaseUserName, configuration.DataBasePassword);
+				firebirdClient = new Infoscreen.FirebirdClient(
+					configuration.DataBaseAddress,
+					configuration.DataBaseName,
+					configuration.DataBaseUserName, 
+					configuration.DataBasePassword);
 
-			if (chairItems.Count == 0)
-				GetChairItems(true);
+			if (chairItemsCache.Count == 0)
+				GetChairItems();
 
-			if (chairItems.Count == 0)
+			if (chairItemsCache.Count == 0)
 				return;
 
 			Infoscreen.Configuration.ItemSystem itemSystem =
@@ -312,50 +196,13 @@ namespace InfoscreenConfigManager {
 			string systemName = itemSystem.SystemName;
 
 			WindowEditSystemChairs windowAddOrEditSystem =
-				new WindowEditSystemChairs(chairItems, systemName, itemSystem.ChairItems);
+				new WindowEditSystemChairs(chairItemsCache, systemName, itemSystem.ChairItems);
 			windowAddOrEditSystem.Owner = Window.GetWindow(this);
 			windowAddOrEditSystem.ShowDialog();
 		}
 
 		private void ButtonSaveConfig_Click(object sender, RoutedEventArgs e) {
 			string errorMsg = string.Empty;
-
-			if (string.IsNullOrEmpty(ChairsRotateIntervalInSeconds) ||
-				string.IsNullOrWhiteSpace(ChairsRotateIntervalInSeconds))
-				errorMsg += Environment.NewLine + "Поле 'таймеры - переключение страниц кресел' не может быть пустым";
-
-			if (string.IsNullOrEmpty(TimetableRotateIntervalInSeconds) ||
-				string.IsNullOrWhiteSpace(TimetableRotateIntervalInSeconds))
-				errorMsg += Environment.NewLine + "Поле 'таймеры - переключение страниц расписания' не может быть пустым";
-
-
-			if (string.IsNullOrEmpty(DatabaseUpdateIntervalInSeconds) ||
-				string.IsNullOrWhiteSpace(DatabaseUpdateIntervalInSeconds))
-				errorMsg += Environment.NewLine + "Поле 'таймеры - обновление данных' не может быть пустым";
-
-
-			if (string.IsNullOrEmpty(PhotosUpdateIntervalInSeconds) ||
-				string.IsNullOrWhiteSpace(PhotosUpdateIntervalInSeconds))
-				errorMsg += Environment.NewLine + "Поле 'таймеры - обновление фотографий' не может быть пустым";
-
-
-			if (string.IsNullOrEmpty(DatabaseAddress) ||
-				string.IsNullOrWhiteSpace(DatabaseAddress))
-				errorMsg += Environment.NewLine + "Поле 'подключение к БД МИС Инфоклиника - адрес' не может быть пустым";
-
-
-			if (string.IsNullOrEmpty(DatabaseName) ||
-				string.IsNullOrWhiteSpace(DatabaseName))
-				errorMsg += Environment.NewLine + "Поле 'подключение к БД МИС Инфоклиника - имя базы' не может быть пустым";
-
-
-			if (firebirdClient != null && !firebirdClient.IsDbAvailable())
-				errorMsg += Environment.NewLine + "Не удается подключиться к БД, используя текущие параметры";
-
-
-			if (string.IsNullOrEmpty(ActiveDirectoryOU) ||
-				string.IsNullOrWhiteSpace(ActiveDirectoryOU))
-				errorMsg += Environment.NewLine + "Поле 'соответствие кресел - подразделение в ActiveDirectory' не может быть пустым";
 
 			if (!string.IsNullOrEmpty(errorMsg)) {
 				errorMsg = "Невозможно продолжить сохранение по следующим причинам:" + Environment.NewLine + errorMsg;
@@ -364,16 +211,6 @@ namespace InfoscreenConfigManager {
 			}
 
 			try {
-				configuration.ChairPagesRotateIntervalInSeconds = Convert.ToInt32(ChairsRotateIntervalInSeconds);
-				configuration.TimetableRotateIntervalInSeconds = Convert.ToInt32(TimetableRotateIntervalInSeconds);
-				configuration.PhotosFolderPath = PhotosFolderPath;
-				configuration.DoctorsPhotoUpdateIntervalInSeconds = Convert.ToInt32(PhotosUpdateIntervalInSeconds);
-				configuration.DataBaseAddress = DatabaseAddress;
-				configuration.DataBaseName = DatabaseName;
-				configuration.DatabaseQueryExecutionIntervalInSeconds = Convert.ToInt32(DatabaseUpdateIntervalInSeconds);
-				configuration.ActiveDirectoryOU = ActiveDirectoryOU;
-				configuration.SystemItems = SystemItems.ToList();
-
 				if (Infoscreen.Configuration.SaveConfiguration(configuration))
 					MessageBox.Show(Window.GetWindow(this), "Конфигурация успешно сохранена в файл: " + configuration.ConfigFilePath,
 						"", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -386,14 +223,6 @@ namespace InfoscreenConfigManager {
 					". " + exc.Message + Environment.NewLine + exc.StackTrace, "", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
 		}
-
-
-
-		private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e) {
-			e.Handled = !IsTextAllowed(e.Key);
-		}
-
-
 
 		private void CheckBoxIsLiveQueue_Checked(object sender, RoutedEventArgs e) {
 			if (!((sender as CheckBox).DataContext is Infoscreen.Configuration.ItemSystem itemSystem))
@@ -419,6 +248,20 @@ namespace InfoscreenConfigManager {
 
 			itemSystem.ChairItems.Clear();
 			itemSystem.IsLiveQueue = false;
+		}
+
+		private void ButtonInternalSettings_Click(object sender, RoutedEventArgs e) {
+			if (!isAuthorized) {
+				WindowEnterPassword windowEnterPassword = new WindowEnterPassword();
+				windowEnterPassword.Owner = Application.Current.MainWindow;
+				bool? result = windowEnterPassword.ShowDialog();
+				if ((result.HasValue && result.Value) == true)
+					isAuthorized = true;
+				else return;
+			}
+
+			PageInternalSettings pageInternalSettings = new PageInternalSettings(configuration);
+			NavigationService.Navigate(pageInternalSettings);
 		}
 	}
 }

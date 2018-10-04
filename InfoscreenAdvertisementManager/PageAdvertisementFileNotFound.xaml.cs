@@ -34,7 +34,7 @@ namespace InfoscreenAdvertisementManager {
 				return;
 
 			Infoscreen.Advertisement advertisement = new Infoscreen.Advertisement();
-			Infoscreen.Advertisement.GetAdvertisement(openFileDialog.FileName, out advertisement);
+			Infoscreen.Advertisement.LoadAdvertisement(openFileDialog.FileName, out advertisement);
 
 			if (advertisement.IsReadedSuccessfully) {
 				PageAdvertisementFileView pageAdvertisementFileView = 
