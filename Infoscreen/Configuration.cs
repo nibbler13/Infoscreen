@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 using System.Xml.Serialization;
 
 namespace Infoscreen {
@@ -14,10 +15,51 @@ namespace Infoscreen {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public int DatabaseQueryExecutionIntervalInSeconds { get; set; }
-		public int DoctorsPhotoUpdateIntervalInSeconds { get; set; }
-		public int ChairPagesRotateIntervalInSeconds { get; set; }
-		public int TimetableRotateIntervalInSeconds { get; set; }
+		private int databaseQueryExecutionIntervalInSeconds;
+		public int DatabaseQueryExecutionIntervalInSeconds {
+			get { return databaseQueryExecutionIntervalInSeconds; }
+			set {
+				if (value != databaseQueryExecutionIntervalInSeconds) {
+					databaseQueryExecutionIntervalInSeconds = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
+		private int doctorsPhotoUpdateIntervalInSeconds;
+		public int DoctorsPhotoUpdateIntervalInSeconds {
+			get { return doctorsPhotoUpdateIntervalInSeconds; }
+			set {
+				if (value != doctorsPhotoUpdateIntervalInSeconds) {
+					doctorsPhotoUpdateIntervalInSeconds = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
+		private int chairPagesRotateIntervalInSeconds;
+		public int ChairPagesRotateIntervalInSeconds {
+			get { return chairPagesRotateIntervalInSeconds; }
+			set {
+				if (value != chairPagesRotateIntervalInSeconds) {
+					chairPagesRotateIntervalInSeconds = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
+		private int timetableRotateIntervalInSeconds;
+		public int TimetableRotateIntervalInSeconds {
+			get { return timetableRotateIntervalInSeconds; }
+			set {
+				if (value != timetableRotateIntervalInSeconds) {
+					timetableRotateIntervalInSeconds = value;
+					NotifyPropertyChanged();
+				}
+			}
+		}
+
+
 		public string PhotosFolderPath { get; set; }
 		public string DataBaseCopyAddress { get; set; }
 		public string DataBaseAddress { get; set; }
@@ -53,6 +95,10 @@ namespace Infoscreen {
 		public ObservableCollection<ItemSystem> SystemItems { get; set; } =
 			new ObservableCollection<ItemSystem>();
 		
+		public ICollectionView SystemItemsView {
+			get { return CollectionViewSource.GetDefaultView(SystemItems); }
+		}
+
 		public Configuration() {
 			ChairPagesRotateIntervalInSeconds = 15;
 			TimetableRotateIntervalInSeconds = 30;
@@ -65,14 +111,24 @@ namespace Infoscreen {
 			ConfigFilePath = Logging.ASSEMBLY_DIRECTORY + "InfoscreenConfig.xml";
 		}
 
+		public bool IsSystemHasLiveQueue() {
+			try {
+				return SystemItems.Where(x => x.SystemName.ToLower().Equals(Environment.MachineName.ToLower())).First().IsLiveQueue;
+			} catch (Exception exc) {
+				Logging.ToLog("MainWindow - " + exc.Message + Environment.NewLine + exc.StackTrace);
+			}
+
+			return false;
+		}
 
 
 
 		public static bool LoadConfiguration(string configFilePath, out Configuration configuration) {
-			if (!File.Exists(configFilePath)) {
-				configuration = new Configuration();
+			Logging.ToLog("Configuration - Считывание файла настроек: " + configFilePath);
+			configuration = new Configuration();
+
+			if (!File.Exists(configFilePath))
 				return false;
-			}
 
 			try {
 				FileStream fileStream = new FileStream(configFilePath, FileMode.Open);
@@ -88,8 +144,6 @@ namespace Infoscreen {
 				return true;
 			} catch (Exception e) {
 				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
-				configuration = new Configuration();
-
 				return false;
 			}
 		}
@@ -109,7 +163,16 @@ namespace Infoscreen {
 			}
 		}
 
-		public string GetChairsId() {
+		public string GetChairsIdForSystem(string systemName) {
+			foreach (ItemSystem item in SystemItems) {
+				if (systemName.ToLower().Equals(item.SystemName.ToLower())) {
+					if (item.ChairItems.Count == 0)
+						return string.Empty;
+					else
+						return string.Join(",", item.ChairItems.Select(x => x.ChairID));
+				}
+			}
+
 			return string.Empty;
 		}
 

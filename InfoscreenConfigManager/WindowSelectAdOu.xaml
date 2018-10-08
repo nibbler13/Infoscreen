@@ -8,7 +8,7 @@
         Title="Выбор подразделения ActiveDirectory" 
         Height="500" 
         Width="400"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -24,12 +24,16 @@
                   SelectedItemChanged="TreeViewMain_SelectedItemChanged"
                   Margin="0,6,0,6"/>
 
-        <Button Content="Ок"
-                Grid.Row="2"
+        <Button Grid.Row="2"
                 x:Name="ButtonSelect" 
                 IsEnabled="False"
                 Click="ButtonSelect_Click"
-                Width="80"/>
+                Width="80">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/ConfirmButton_16x.png"/>
+                <TextBlock Text="Ok" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
 
     </Grid>
 </Window>

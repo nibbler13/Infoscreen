@@ -85,7 +85,7 @@ namespace Infoscreen
 				if (string.IsNullOrEmpty(photo)) {
 					var logo = new BitmapImage();
 					logo.BeginInit();
-					logo.UriSource = new Uri("pack://application:,,,/Infoscreen;component/Images/DoctorWithoutAPhoto.png");
+					logo.UriSource = new Uri("pack://application:,,,/Infoscreen;component/Media/DoctorWithoutAPhoto.png");
 					logo.EndInit();
 					ImageEmployee.Source = logo;
 				} else {

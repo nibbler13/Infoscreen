@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,7 +20,7 @@ namespace Infoscreen {
 		public event EventHandler OnUpdateCompleted = delegate { };
 		public bool IsUpdateSuccessfull { get; private set; }
 
-
+		private readonly string localPhotosPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DoctorsPhotos");
 
 
 
@@ -39,7 +40,7 @@ namespace Infoscreen {
 			Logging.ToLog("DataProvider - Обновление данных");
 
 			DataTable dataTable = firebirdClient.GetDataTable(configuration.DataBaseQuery,
-				new Dictionary<string, object>() { { "@chairList", configuration.GetChairsId() } });
+				new Dictionary<string, object>() { { "@chairList", configuration.GetChairsIdForSystem(Environment.MachineName) } });
 			ChairsDict.Clear();
 
 			Logging.ToLog("DataProvider - Получено строк - " + dataTable.Rows.Count);
@@ -139,18 +140,31 @@ namespace Infoscreen {
 
 		public void UpdateDoctorsPhoto() {
 			Logging.ToLog("DataProvider - Обновление фотографий сотрудников");
+			
+			Logging.ToLog("DataProvider - Папка назначения: " + localPhotosPath);
+			if (!Directory.Exists(localPhotosPath)) {
+				try {
+					Directory.CreateDirectory(localPhotosPath);
+				} catch (Exception e) {
+					Logging.ToLog("DataProvider - " + e.Message + Environment.NewLine + e.StackTrace);
+				}
+			}
 
 			string searchPath = configuration.PhotosFolderPath;
-			string destinationPath = Directory.GetCurrentDirectory() + "\\DoctorsPhotos\\";
-			if (!Directory.Exists(destinationPath))
-				Directory.CreateDirectory(destinationPath);
-
+			Logging.ToLog("DataProvider - Папка поиска: " + searchPath);
 			if (!Directory.Exists(searchPath)) {
 				Logging.ToLog("DataProvider - Директория с фотографиями недоступна: " + searchPath);
 				return;
 			}
 
-			string[] photos = Directory.GetFiles(searchPath, "*.jpg", SearchOption.AllDirectories);
+			string[] photos = new string[0];
+			try {
+				photos = Directory.GetFiles(searchPath, "*.jpg", SearchOption.AllDirectories);
+				Logging.ToLog("DataProvider - Найдено фотографий: " + photos.Length);
+			} catch (Exception e) {
+				Logging.ToLog("DataProvider - " + e.Message + Environment.NewLine + e.StackTrace);
+			}	
+
 			List<string> missedPhotos = new List<string>();
 			foreach (string doctor in doctors) {
 				Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + doctor);
@@ -162,7 +176,7 @@ namespace Infoscreen {
 						continue;
 
 					photoLink = photo;
-					string destFileName = destinationPath + doctor + ".jpg";
+					string destFileName = Path.Combine(localPhotosPath, doctor + ".jpg");
 
 					try {
 						if (File.Exists(destFileName) &&
@@ -189,8 +203,7 @@ namespace Infoscreen {
 			Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + name);
 
 			try {
-				string folderToSearchPhotos = Directory.GetCurrentDirectory() + "\\DoctorsPhotos\\";
-				string[] files = Directory.GetFiles(folderToSearchPhotos, "*.jpg");
+				string[] files = Directory.GetFiles(localPhotosPath, "*.jpg");
 
 				string wantedFile = "";
 				foreach (string file in files) {

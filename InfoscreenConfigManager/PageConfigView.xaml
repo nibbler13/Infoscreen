@@ -19,7 +19,7 @@
         <TextBlock Text="Соответствие кресел:" 
                    VerticalAlignment="Center"/>
 
-        <Button Width="Auto" 
+        <Button Width="160" 
                 HorizontalAlignment="Right"
                 Click="ButtonInternalSettings_Click">
             <StackPanel Orientation="Horizontal">
@@ -32,7 +32,7 @@
 
         <DataGrid Grid.Row="1" 
                   Margin="0,10,0,0"
-                  ItemsSource="{Binding SystemItems}"
+                  ItemsSource="{Binding SystemItemsView}"
                   AutoGenerateColumns="False"
                   GridLinesVisibility="Horizontal"
                   x:Name="DataGridItemSystem"
@@ -43,7 +43,6 @@
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   HeadersVisibility="Column">
-
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding SystemName}" 
                                         Header="Имя системы" 
@@ -103,7 +102,9 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="..." Click="ButtonEditChairs_Click"/>
+                            <Button Click="ButtonEditChairs_Click">
+                                <Image Source="Media/Edit_16x.png"/>
+                            </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -112,10 +113,14 @@
 
         <Button Grid.Row="2" 
                 Grid.ColumnSpan="2"
-                Content="Сохранить изменения"
-                Width="150" 
+                Width="160" 
                 Margin="0,10,0,0"
                 x:Name="ButtonSaveConfig"
-                Click="ButtonSaveConfig_Click"/>
+                Click="ButtonSaveConfig_Click">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/Save_16x.png"/>
+                <TextBlock Text="Сохранить изменения" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
     </Grid>
 </Page>

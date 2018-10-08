@@ -55,7 +55,7 @@
                             Margin="20" 
                             HorizontalAlignment="Center"
                             x:Name="StackPanelDoc">
-                    <Image Source="Images/DoctorWithoutAPhoto.png"
+                    <Image Source="Media/DoctorWithoutAPhoto.png"
                            VerticalAlignment="Center"
                            x:Name="ImageEmployee"
                            Margin="20">

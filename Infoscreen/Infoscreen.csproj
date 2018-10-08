@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Infoscreen.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="FirebirdSql.Data.FirebirdClient, Version=5.12.1.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
       <HintPath>..\packages\FirebirdSql.Data.FirebirdClient.5.12.1\lib\net452\FirebirdSql.Data.FirebirdClient.dll</HintPath>
@@ -118,36 +121,39 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\BottomLineContinuesClear.png" />
-    <Resource Include="Images\BottomLineTemplate.png" />
-    <Resource Include="Images\ButterflyClear.png" />
+    <Resource Include="Media\BottomLineContinuesClear.png" />
+    <Resource Include="Media\BottomLineTemplate.png" />
+    <Resource Include="Media\ButterflyClear.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\LogoBzCutted.png" />
+    <Resource Include="Media\LogoBzCutted.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\IconTime.png" />
+    <Resource Include="Media\IconTime.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\DoctorWithoutAPhoto.png" />
+    <Resource Include="Media\DoctorWithoutAPhoto.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\logo full transparent.png" />
+    <Resource Include="Media\logo full transparent.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\Clock.png" />
+    <Resource Include="Media\Clock.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\IconInfo.png" />
+    <Resource Include="Media\IconInfo.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\ServiceUnavailable.png" />
+    <Resource Include="Media\ServiceUnavailable.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\PicError.jpg" />
+    <Resource Include="Media\PicError.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\PicError.png" />
+    <Resource Include="Media\PicError.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Infoscreen.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

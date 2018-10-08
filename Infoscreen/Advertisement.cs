@@ -57,6 +57,8 @@ namespace Infoscreen {
 		public ObservableCollection<ItemAdvertisement> AdvertisementItems { get; set; } =
 			new ObservableCollection<ItemAdvertisement>();
 
+		public List<ItemAdvertisement> AdvertisementItemsToShow = new List<ItemAdvertisement>();
+
 		private int CurrentAdvertisementIndex { get; set; } = 0;
 		private bool IsSaved = false;
 
@@ -64,14 +66,15 @@ namespace Infoscreen {
 		public Advertisement() {
 			AdFilePath = Infoscreen.Logging.ASSEMBLY_DIRECTORY + "Advertisement.xml";
 			DisableAdDisplay = false;
-			PauseBetweenAdInSeconds = 30;
-			AdDurationInSeconds = 20;
+			PauseBetweenAdInSeconds = 15;
+			AdDurationInSeconds = 25;
 		}
 
 
 
 
 		public static bool LoadAdvertisement(string adFilePath, out Advertisement advertisement) {
+			Logging.ToLog("Advertisement - Считывание файла с информационными сообщениями: " + adFilePath);
 			advertisement = new Advertisement();
 
 			if (!File.Exists(adFilePath))
@@ -87,6 +90,20 @@ namespace Infoscreen {
 				advertisement = (Advertisement)xmlSerializer.Deserialize(fileStream);
 				advertisement.AdFilePath = adFilePath;
 				advertisement.IsReadedSuccessfully = true;
+				advertisement.CurrentAdvertisementIndex = 0;
+
+				Random random = new Random();
+				foreach (ItemAdvertisement item in advertisement.AdvertisementItems) {
+					item.OrderNumber = random.Next(0, 1000);
+
+					if (item.SetDateBegin && item.DateBegin.HasValue && DateTime.Now < item.DateBegin.Value)
+						continue;
+
+					if (item.SetDateEnd && item.DateEnd.HasValue && DateTime.Now > item.DateEnd.Value)
+						continue;
+
+					advertisement.AdvertisementItemsToShow.Add(item);
+				}
 
 				return true;
 			} catch (Exception e) {
@@ -189,11 +206,14 @@ namespace Infoscreen {
 
 
 		public ItemAdvertisement GetNextAdItem() {
-			//configuration.CurrentAdvertisementIndex++;
-			//if (configuration.CurrentAdvertisementIndex == configuration.AdvertisementItems.Count)
-			//	configuration.CurrentAdvertisementIndex = 0;
+			if (AdvertisementItemsToShow.Count == 0)
+				return new ItemAdvertisement();
 
-			return new ItemAdvertisement();
+			CurrentAdvertisementIndex++;
+			if (CurrentAdvertisementIndex == AdvertisementItemsToShow.Count)
+				CurrentAdvertisementIndex = 0;
+
+			return AdvertisementItemsToShow.OrderBy(x => x.OrderNumber).ToList()[CurrentAdvertisementIndex];
 		}
 
 
@@ -403,8 +423,6 @@ namespace Infoscreen {
 			public bool HasChanged = false;
 
 			public ItemAdvertisement() {
-				Random random = new Random();
-				OrderNumber = random.Next(0, 1000);
 				DateCreated = DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString();
 			}
 		}

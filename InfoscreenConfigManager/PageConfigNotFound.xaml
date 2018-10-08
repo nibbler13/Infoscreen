@@ -20,15 +20,23 @@
                    VerticalAlignment="Bottom"
                    HorizontalAlignment="Center"
                    TextWrapping="Wrap"/>
-        
+
         <Button Grid.Row="1"
-                Content="Выбрать файл"
                 Margin="0,20,0,20"
-                Width="210" Click="ButtonSelectFile_Click"/>
-        
+                Width="230" Click="ButtonSelectFile_Click">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/Select_16x.png"/>
+                <TextBlock Text="Выбрать файл" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
+
         <Button Grid.Row="2"
-                Content="Создать новый файл конфигурации"
                 VerticalAlignment="Top"
-                Width="210" Click="ButtonCreateNewFile_Click"/>
+                Width="230" Click="ButtonCreateNewFile_Click">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/Create_16x.png" MaxHeight="16"/>
+                <TextBlock Text="Создать новый файл конфигурации" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
     </Grid>
 </Page>

@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>InfoscreenAdvertisementManager.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -114,7 +117,25 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\IconInfo.png" />
+    <Resource Include="Media\IconInfo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\Save_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\Select_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\Create_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\Add_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\Remove_16x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="InfoscreenAdvertisementManager.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

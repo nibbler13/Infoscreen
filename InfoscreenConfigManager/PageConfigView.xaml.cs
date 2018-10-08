@@ -42,9 +42,10 @@ namespace InfoscreenConfigManager {
 			InitializeComponent();
 			KeepAlive = true;
 			this.configuration = configuration;
-			DataGridItemSystem.DataContext = configuration;
 			DataContext = this;
+			DataGridItemSystem.DataContext = configuration;
 			Loaded += PageConfigView_Loaded;
+			configuration.SystemItemsView.SortDescriptions.Add(new SortDescription("SystemName", ListSortDirection.Ascending));
 		}
 
 
@@ -52,6 +53,7 @@ namespace InfoscreenConfigManager {
 		private void PageConfigView_Loaded(object sender, RoutedEventArgs e) {
 			UpdateChairItems();
 			UpdateSystemItems();
+			configuration.SystemItemsView.Refresh();
 		}
 		
 		private async void UpdateChairItems() {
@@ -114,8 +116,6 @@ namespace InfoscreenConfigManager {
 		}
 
 		private async void UpdateSystemItems() {
-			configuration.SystemItems.Clear();
-
 			if (string.IsNullOrEmpty(configuration.ActiveDirectoryOU)) {
 				MessageBox.Show(Application.Current.MainWindow, 
 					"Не выбрано подразделение ActiveDirectory в разделе 'Внутренние настройки'", "Ошибка конфигурации",
@@ -123,6 +123,7 @@ namespace InfoscreenConfigManager {
 				return;
 			}
 
+			List<Infoscreen.Configuration.ItemSystem> itemSystems = new List<Infoscreen.Configuration.ItemSystem>();
 			await Task.Run(() => {
 				string searchPath = "LDAP://" + configuration.ActiveDirectoryOU;
 
@@ -142,10 +143,10 @@ namespace InfoscreenConfigManager {
 									Infoscreen.Configuration.ItemSystem itemSystem = new Infoscreen.Configuration.ItemSystem() {
 										SystemName = name,
 										SystemUnit = dn.Replace(configuration.ActiveDirectoryOU, "").
-													Replace("CN=" + name + ",", "").
-													TrimEnd(',').
-													TrimStart(new char[] { 'O', 'U', '=' }).
-													Replace(",OU=", ", ")
+											Replace("CN=" + name + ",", "").
+											TrimEnd(',').
+											TrimStart(new char[] { 'O', 'U', '=' }).
+											Replace(",OU=", ", ")
 									};
 
 									try {
@@ -153,18 +154,14 @@ namespace InfoscreenConfigManager {
 											configuration.SystemItems.Where(
 												x => x.SystemName.ToUpper().Equals(itemSystem.SystemName.ToUpper()));
 
-										if (systemsInConfig.Count() == 1) {
-											Infoscreen.Configuration.ItemSystem itemSystemCR = systemsInConfig.First();
-											itemSystem.ChairItems = itemSystemCR.ChairItems;
-											itemSystem.IsLiveQueue = itemSystemCR.IsLiveQueue;
-											itemSystem.IsTimetable = itemSystemCR.IsTimetable;
-										}
+										if (systemsInConfig.Count() == 1)
+											itemSystem = systemsInConfig.First();
 
 									} catch (Exception excInner) {
 										Console.WriteLine(excInner.Message + Environment.NewLine + excInner.StackTrace);
 									}
-
-									Application.Current.Dispatcher.BeginInvoke((Action)(() => { configuration.SystemItems.Add(itemSystem); }));
+									
+									itemSystems.Add(itemSystem);
 								} catch (Exception exc) {
 									Console.WriteLine(exc.Message + Environment.NewLine + exc.StackTrace);
 								}
@@ -175,6 +172,9 @@ namespace InfoscreenConfigManager {
 					Console.WriteLine(exceptionLdap.Message + Environment.NewLine + exceptionLdap.StackTrace);
 				}
 			});
+
+			configuration.SystemItems.Clear();
+			itemSystems.ForEach(configuration.SystemItems.Add);
 		}
 
 		private void ButtonEditChairs_Click(object sender, RoutedEventArgs e) {

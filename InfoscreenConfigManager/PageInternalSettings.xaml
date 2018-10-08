@@ -62,14 +62,18 @@
                          Grid.Column="6"
                          Text="{Binding DataBasePassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
-                <Button Content="Проверить подключение" 
-                        Grid.Row="3" 
+                <Button Grid.Row="3" 
                         Grid.ColumnSpan="7" 
-                        Width="150"
+                        Width="170"
                         x:Name="ButtonCheckDBConnect" 
                         Click="ButtonCheckDBConnect_Click"
                         VerticalAlignment="Center"
-                        Margin="0,6,0,0"/>
+                        Margin="0,6,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Media/Connect_16x.png"/>
+                        <TextBlock Text="Проверить подключение" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </GroupBox>
 
@@ -84,7 +88,9 @@
                 <TextBox Margin="6" 
                          Text="{Binding DataBaseQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          HorizontalScrollBarVisibility="Auto"
-                         VerticalScrollBarVisibility="Auto"/>
+                         VerticalScrollBarVisibility="Auto"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"/>
             </GroupBox>
 
             <GridSplitter Grid.Column="1"
@@ -98,7 +104,9 @@
                 <TextBox Margin="6" 
                          Text="{Binding DataBaseQueryTimetable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          HorizontalScrollBarVisibility="Auto"
-                         VerticalScrollBarVisibility="Auto"/>
+                         VerticalScrollBarVisibility="Auto"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"/>
             </GroupBox>
         </Grid>
 
@@ -184,12 +192,16 @@
                 <TextBox Text="{Binding PhotosFolderPath}"
                          IsReadOnly="True"/>
 
-                <Button Content="Выбрать"
-                        Grid.Column="1"
+                <Button Grid.Column="1"
                         Margin="6,0,0,0"
-                        Width="60" 
+                        Width="80" 
                         x:Name="ButtonSelectPhotosFolder"
-                        Click="ButtonSelectPhotosFolder_Click"/>
+                        Click="ButtonSelectPhotosFolder_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Media/Select_16x.png"/>
+                        <TextBlock Text="Выбрать" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </GroupBox>
 
@@ -205,26 +217,38 @@
                          IsReadOnly="True"/>
 
                 <Button Grid.Column="1"
-                        Content="Выбрать"
-                        Width="60"
+                        Width="80"
                         Margin="6,0,0,0"
                         x:Name="ButtonSelectActiveDirectoryOU"
-                        Click="ButtonSelectActiveDirectoryOU_Click"/>
+                        Click="ButtonSelectActiveDirectoryOU_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Media/Select_16x.png"/>
+                        <TextBlock Text="Выбрать" Margin="6,0,0,0"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </GroupBox>
 
         <Button Grid.Row="5"
-                Content="Назад"
-                Width="60"
+                Width="70"
                 Margin="0,10,0,10"
                 Click="ButtonBack_Click"
-                HorizontalAlignment="Left"/>
+                HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/Backward_16x.png"/>
+                <TextBlock Text="Назад" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
 
         <Button Grid.Row="5"
-                Content="Сохранить изменения"
-                Width="140"
+                Width="160"
                 Margin="0,10,0,10"
-                Click="ButtonSaveConfig_Click"/>
+                Click="ButtonSaveConfig_Click">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/Save_16x.png"/>
+                <TextBlock Text="Сохранить изменения" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
         
     </Grid>
 </Page>

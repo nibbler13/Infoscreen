@@ -13,9 +13,11 @@
         FontWeight="Light"
         FontSize="50"
         Foreground="#FF2D3D3F"
-        WindowState="Normal" 
-        Topmost="False"
-        WindowStyle="None">
+        WindowState="Maximized" 
+        Topmost="True"
+        WindowStyle="None"
+        Icon="Infoscreen.ico"
+        Cursor="None">
     <Grid x:Name="GridRoot">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"/>
@@ -33,7 +35,7 @@
                    Margin="20,0,0,0"
                    VerticalAlignment="Center"
                    Grid.Row="0">
-            <Image Source="Images/Clock.png" 
+            <Image Source="Media/Clock.png" 
                    Margin="0,5,10,5"
                    RenderOptions.BitmapScalingMode="HighQuality"/>
 
@@ -66,7 +68,7 @@
               x:Name="StackPanelPageIndicator"
               Margin="0,0,0,10"/>
 
-        <Image Source="Images/ButterflyClear.png" 
+        <Image Source="Media/ButterflyClear.png" 
                Grid.Column="2"
                VerticalAlignment="Center"
                Margin="0,20,20,20"
@@ -99,7 +101,7 @@
                        Margin="20,20,20,0"
                        x:Name="DocPanelAdvertisementTitle">
 
-                <Image Source="Images/IconInfo.png"
+                <Image Source="Media/IconInfo.png"
                        VerticalAlignment="Center"
                        Width="40"
                        Height="40"/>
@@ -116,7 +118,7 @@
                        Margin="20,20,20,0"
                        x:Name="DocPanelAdvertisementBody">
 
-                <Image Source="Images/IconInfo.png"
+                <Image Source="Media/IconInfo.png"
                        VerticalAlignment="Top"
                        Width="40"
                        Height="40"

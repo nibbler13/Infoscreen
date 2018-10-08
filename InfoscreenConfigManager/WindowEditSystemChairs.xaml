@@ -10,7 +10,7 @@
         Height="600" 
         Width="500"
         MinHeight="600"
-        MinWidth="500">
+        MinWidth="500" Icon="InfoscreenConfigManager.ico" WindowStyle="ToolWindow">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -43,7 +43,6 @@
                   HeadersVisibility="Column"
                   MouseDoubleClick="DataGridItemChairs_MouseDoubleClick"
                   SelectionChanged="DataGridItemChairs_SelectionChanged">
-            
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding RoomNumber}" 
                                     Header="№ кабинета" 
@@ -136,12 +135,16 @@
             </DataGrid>
         </Grid>
 
-        <Button Content="Ок"
-                Grid.Row="5"
+        <Button Grid.Row="5"
                 Grid.ColumnSpan="3"
                 Width="80"
                 x:Name="ButtonOk"
                 Click="ButtonOk_Click"
-                Margin="0,10,0,0"/>
+                Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Media/ConfirmButton_16x.png"/>
+                <TextBlock Text="Ok" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Button>
     </Grid>
 </Window>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace Infoscreen {
 		private int currentPageIndex = 0;
 		private bool isErrorPageShowing = false;
 		private bool isChairPagesCreationCompleted = false;
+		private bool isLiveQueue = false;
 
 		public event RoutedEventHandler ShowAdvertisement {
 			add { AddHandler(ShowAdvertisementEvent, value); }
@@ -34,16 +36,18 @@ namespace Infoscreen {
 		}
 
 		private string configFilePath;
+		private string advertisementFilePath;
 		private Configuration configuration;
 		private DataProvider dataProvider;
 		private Advertisement advertisement;
 
 
-		public MainWindow(string configFilePath) {
+		public MainWindow(string configFilePath, string advertisementFilePath) {
 			Logging.ToLog("MainWindow - Создание основного окна приложения");
 
 			InitializeComponent();
 			this.configFilePath = configFilePath;
+			this.advertisementFilePath = advertisementFilePath;
 
 			PreviewKeyDown += (s, e) => {
 				if (e.Key.Equals(Key.Escape)) {
@@ -53,13 +57,14 @@ namespace Infoscreen {
 			};
 
 			Loaded += MainWindow_Loaded;
+
+			if (Debugger.IsAttached) {
+				Topmost = false;
+				Cursor = Cursors.Arrow;
+			}
 		}
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-			await Task.Run(() => {
-				Configuration.LoadConfiguration(configFilePath, out configuration);
-			});
-
 			DispatcherTimer timerSecondsTick = new DispatcherTimer();
 			timerSecondsTick.Interval = TimeSpan.FromSeconds(1);
 			timerSecondsTick.Tick += (s, ev) => {
@@ -73,6 +78,24 @@ namespace Infoscreen {
 			};
 			timerSecondsTick.Start();
 
+			await Task.Run(() => {
+				Advertisement.LoadAdvertisement(advertisementFilePath, out advertisement);
+			});
+			
+			if (!advertisement.DisableAdDisplay && advertisement.AdvertisementItemsToShow.Count > 0) {
+				Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
+				DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
+				timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + advertisement.PauseBetweenAdInSeconds);
+				timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
+				timerShowAdvertisement.Start();
+				TimerShowAdvertisement_Tick(null, null);
+			} else
+				Logging.ToLog("MainWindow - пропуск отображения рекламы в соответствии с настройками");
+
+			await Task.Run(() => {
+				Configuration.LoadConfiguration(configFilePath, out configuration);
+			});
+
 			if (!configuration.IsConfigReadedSuccessfull) {
 				TextBlockRoom.Visibility = Visibility.Hidden;
 				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
@@ -80,11 +103,13 @@ namespace Infoscreen {
 				return;
 			}
 
-			if (string.IsNullOrEmpty(configuration.GetChairsId())) {
+			if (string.IsNullOrEmpty(configuration.GetChairsIdForSystem(Environment.MachineName))) {
 				TextBlockRoom.Text = "Кабинет не выбран";
 				Logging.ToLog("MainWindow - Не заполнен список кабинок");
 				return;
 			}
+
+			isLiveQueue = configuration.IsSystemHasLiveQueue();
 
 			dataProvider = new DataProvider(configuration);
 
@@ -99,17 +124,6 @@ namespace Infoscreen {
 			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(configuration.DoctorsPhotoUpdateIntervalInSeconds);
 			timerUpdatePhotos.Tick += (s, ev) => { dataProvider.UpdateDoctorsPhoto(); };
 			timerUpdatePhotos.Start();
-
-			await Task.Run(() => {
-				Advertisement.LoadAdvertisement(string.Empty, out advertisement);
-			});
-
-			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
-			DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
-			timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + advertisement.PauseBetweenAdInSeconds);
-			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
-			timerShowAdvertisement.Start();
-			TimerShowAdvertisement_Tick(null, null);
 
 			dataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
 			dataProvider.UpdateData();
@@ -134,11 +148,6 @@ namespace Infoscreen {
 		private void TimerShowAdvertisement_Tick(object sender, EventArgs e) {
 			Logging.ToLog("MainWindow - Отображение рекламного сообщения");
 
-			if (!advertisement.DisableAdDisplay) {
-				Logging.ToLog("MainWindow - пропуск отображения в соответствии с настройками");
-				return;
-			}
-
 			if (isErrorPageShowing) {
 				Logging.ToLog("MainWindow - пропуск отображения, т.к. в данный момент отображается сообщение об ошибке в работе");
 				return;
@@ -156,10 +165,9 @@ namespace Infoscreen {
 				TextBlockAdvertisementBody.Text = itemAd.Body;
 				TextBlockAdvertisementPostScriptum.Text = itemAd.PostScriptum;
 
-				DocPanelAdvertisementTitle.Visibility = string.IsNullOrEmpty(itemAd.Title) ? Visibility.Collapsed : Visibility.Visible;
-				ImageBodyIcon.Visibility = string.IsNullOrEmpty(itemAd.Title) ? Visibility.Visible : Visibility.Collapsed;
-				TextBlockAdvertisementBody.Visibility = string.IsNullOrEmpty(itemAd.Body) ? Visibility.Collapsed : Visibility.Visible;
-				TextBlockAdvertisementPostScriptum.Visibility = string.IsNullOrEmpty(itemAd.PostScriptum) ? Visibility.Collapsed : Visibility.Visible;
+				DocPanelAdvertisementTitle.Visibility = itemAd.DisplayTitle ? Visibility.Visible : Visibility.Collapsed;
+				ImageBodyIcon.Visibility = itemAd.DisplayBodyIcon ? Visibility.Visible : Visibility.Collapsed;
+				TextBlockAdvertisementPostScriptum.Visibility = itemAd.DisplayPostScriptum ? Visibility.Visible : Visibility.Collapsed;
 
 				Logging.ToLog("MainWindow - Отображение сообщения: " + itemAd.Title + ", " +
 					itemAd.Body + ", " + itemAd.PostScriptum);
@@ -197,7 +205,7 @@ namespace Infoscreen {
 				return;
 			} else {
 				foreach (DataProvider.ItemChair itemChair in dataProvider.ChairsDict.Values) {
-					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, false, dataProvider); //!!!need to set is live queue
+					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, isLiveQueue, dataProvider);
 					Border border = new Border {
 						Margin = new Thickness(3,0,3,0),
 						Height = 5,

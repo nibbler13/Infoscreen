@@ -8,7 +8,7 @@ using System.Windows;
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
 [assembly: AssemblyTitle("Infoscreen")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Приложение для отображение статуса кабинета")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ООО Клиника ЛМС")]
 [assembly: AssemblyProduct("Infoscreen")]
