@@ -81,31 +81,32 @@ namespace Infoscreen {
 				return false;
 
 			try {
-				FileStream fileStream = new FileStream(adFilePath, FileMode.Open);
-				XmlSerializer xmlSerializer = new XmlSerializer(typeof(Advertisement));
-				xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog(e.ExpectedAttributes); };
-				xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog(e.ExpectedElements); };
-				xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog(e.Name); };
-				xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog(e.UnreferencedId); };
-				advertisement = (Advertisement)xmlSerializer.Deserialize(fileStream);
-				advertisement.AdFilePath = adFilePath;
-				advertisement.IsReadedSuccessfully = true;
-				advertisement.CurrentAdvertisementIndex = 0;
+				using (FileStream fileStream = new FileStream(adFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+					XmlSerializer xmlSerializer = new XmlSerializer(typeof(Advertisement));
+					xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog(e.ExpectedAttributes); };
+					xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog(e.ExpectedElements); };
+					xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog(e.Name); };
+					xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog(e.UnreferencedId); };
+					advertisement = (Advertisement)xmlSerializer.Deserialize(fileStream);
+					advertisement.AdFilePath = adFilePath;
+					advertisement.IsReadedSuccessfully = true;
+					advertisement.CurrentAdvertisementIndex = 0;
 
-				Random random = new Random();
-				foreach (ItemAdvertisement item in advertisement.AdvertisementItems) {
-					item.OrderNumber = random.Next(0, 1000);
+					Random random = new Random();
+					foreach (ItemAdvertisement item in advertisement.AdvertisementItems) {
+						item.OrderNumber = random.Next(0, 1000);
 
-					if (item.SetDateBegin && item.DateBegin.HasValue && DateTime.Now < item.DateBegin.Value)
-						continue;
+						if (item.SetDateBegin && item.DateBegin.HasValue && DateTime.Now < item.DateBegin.Value)
+							continue;
 
-					if (item.SetDateEnd && item.DateEnd.HasValue && DateTime.Now > item.DateEnd.Value)
-						continue;
+						if (item.SetDateEnd && item.DateEnd.HasValue && DateTime.Now > item.DateEnd.Value)
+							continue;
 
-					advertisement.AdvertisementItemsToShow.Add(item);
+						advertisement.AdvertisementItemsToShow.Add(item);
+					}
+
+					return true;
 				}
-
-				return true;
 			} catch (Exception e) {
 				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
 			}

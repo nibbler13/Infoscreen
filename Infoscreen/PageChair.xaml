@@ -37,11 +37,11 @@
                 <Border.Effect>
                     <DropShadowEffect Opacity="0.4"/>
                 </Border.Effect>
-                <TextBlock HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                           Foreground="White"
-                       Text="Педиатрия"
-                       x:Name="TextBlockDepartment"/>
+                <TextBlock Foreground="White"
+                           Text="Педиатрия"
+                           x:Name="TextBlockDepartment"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
             </Border>
 
             <Grid Grid.Row="1">

@@ -86,6 +86,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="PageTimetable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PageChair.xaml.cs">
@@ -93,6 +97,9 @@
     </Compile>
     <Compile Include="PageError.xaml.cs">
       <DependentUpon>PageError.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageTimetable.xaml.cs">
+      <DependentUpon>PageTimetable.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -154,6 +161,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Infoscreen.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\UnknownDepartment.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

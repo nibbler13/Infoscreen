@@ -7,9 +7,9 @@
         mc:Ignorable="d"
         Title="Управление настройками Infoscreen" 
         Height="800" 
-        Width="800"
+        Width="1000"
         MinHeight="800"
-        MinWidth="800"
+        MinWidth="1000"
         WindowStartupLocation="CenterScreen" Icon="InfoscreenConfigManager.ico">
     <Grid Margin="10">
         <TextBlock x:Name="TextBlockMain"

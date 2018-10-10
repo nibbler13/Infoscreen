@@ -84,7 +84,18 @@ namespace Infoscreen.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на .
+        ///   Ищет локализованную строку, похожую на -- ver 1.0
+        ///select depname,fullname,d0,d1,d2,d3,d4,d5,d6
+        ///from
+        ///(
+        ///select
+        ///    upper(dp.depname) depname
+        ///  , d.fullname
+        ///  , ds.depnum
+        ///  , ds.dcode
+        ///  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast(&apos;00:00&apos; as time)),5)||&apos; - &apos;||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast(&apos;00:00&apos; as time)),5) from doctshedule ds0
+        ///     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,0,current_date)) d0
+        ///  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin), [остаток строки не уместился]&quot;;.
         /// </summary>
         internal static string SqlQueryTimetable {
             get {

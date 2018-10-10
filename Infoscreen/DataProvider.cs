@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace Infoscreen {
 	public class DataProvider {
@@ -20,7 +21,9 @@ namespace Infoscreen {
 		public event EventHandler OnUpdateCompleted = delegate { };
 		public bool IsUpdateSuccessfull { get; private set; }
 
-		private readonly string localPhotosPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DoctorsPhotos");
+		private static readonly string rootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+		private static readonly string localDoctorPhotosPath = Path.Combine(rootFolder, "DoctorsPhotos");
+		private static readonly string localDepartmentPhotosPath = Path.Combine(rootFolder, "DepartmentsPhotos");
 
 
 
@@ -98,9 +101,15 @@ namespace Infoscreen {
 										Logging.ToLog("DataProvider - Сотрудник: " + docNames[i] + "|" + docPositions[i] + "|" + docDepartments[i] + "|" + workTime);
 										Logging.ToLog("DataProvider - Статус: " + currentState.Status);
 
+										string docName = ClearDoctorName(docNames[i]);
+
+										string docPosition = docPositions[i];
+										if (docName.EndsWith("ич") && docPosition.ToLower().Contains("медицинская сестра"))
+											docPosition = "Медицинский брат";
+
 										ItemChair.Employee employee = new ItemChair.Employee() {
-											Name = docNames[i],
-											Position = docPositions[i],
+											Name = docName,
+											Position = docPosition,
 											Department = docDepartments[i],
 											WorkingTime = workTime
 										};
@@ -141,10 +150,10 @@ namespace Infoscreen {
 		public void UpdateDoctorsPhoto() {
 			Logging.ToLog("DataProvider - Обновление фотографий сотрудников");
 			
-			Logging.ToLog("DataProvider - Папка назначения: " + localPhotosPath);
-			if (!Directory.Exists(localPhotosPath)) {
+			Logging.ToLog("DataProvider - Папка назначения: " + localDoctorPhotosPath);
+			if (!Directory.Exists(localDoctorPhotosPath)) {
 				try {
-					Directory.CreateDirectory(localPhotosPath);
+					Directory.CreateDirectory(localDoctorPhotosPath);
 				} catch (Exception e) {
 					Logging.ToLog("DataProvider - " + e.Message + Environment.NewLine + e.StackTrace);
 				}
@@ -168,68 +177,163 @@ namespace Infoscreen {
 			List<string> missedPhotos = new List<string>();
 			foreach (string doctor in doctors) {
 				Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + doctor);
-				string photoLink = "";
+				bool isPhotoFound = false;
 
 				foreach (string photo in photos) {
-					string fileName = Path.GetFileNameWithoutExtension(photo);
-					if (!fileName.ToLower().Replace('ё', 'е').Replace("  ", " ").Contains(doctor.ToLower().Replace('ё', 'е')))
-						continue;
-
-					photoLink = photo;
-					string destFileName = Path.Combine(localPhotosPath, doctor + ".jpg");
-
 					try {
+						string fileName = Path.GetFileNameWithoutExtension(photo);
+						if (!fileName.ToLower().Replace('ё', 'е').Replace("  ", " ").Contains(doctor.ToLower().Replace('ё', 'е')))
+							continue;
+
+						isPhotoFound = true;
+						string destFileName = Path.Combine(localDoctorPhotosPath, doctor + ".jpg");
+
 						if (File.Exists(destFileName) &&
-						File.GetLastWriteTime(destFileName).Equals(File.GetLastWriteTime(photo))) {
+							File.GetLastWriteTime(destFileName).Equals(File.GetLastWriteTime(photo))) {
 							Logging.ToLog("DataProvider - Пропуск копирования файла (скопирован ранее) " + photo);
 							break;
 						}
 
-						File.Copy(photo, destFileName);
+						File.Copy(photo, destFileName, true);
 						Logging.ToLog("DataProvider - Копирование файла " + photo + " в файл " + destFileName);
 						break;
 					} catch (Exception e) {
 						Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
-						photoLink = "";
+						isPhotoFound = false;
 					}
 				}
 
-				if (String.IsNullOrEmpty(photoLink))
+				if (!isPhotoFound)
 					Logging.ToLog("DataProvider - Не удалось найти фото");
 			}
 		}
 
-		public string GetImageForDoctor(string name) {
+		public static BitmapImage GetImageForDoctor(string name) {
 			Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + name);
 
 			try {
-				string[] files = Directory.GetFiles(localPhotosPath, "*.jpg");
-
-				string wantedFile = "";
+				string[] files = Directory.GetFiles(localDoctorPhotosPath, "*.jpg");
+				
 				foreach (string file in files) {
 					string fileName = Path.GetFileNameWithoutExtension(file);
 
 					if (!fileName.Contains(name))
 						continue;
 					
-					wantedFile = file;
-					break;
+					return GetBitmapFromFile(file);
 				}
 
-				if (string.IsNullOrEmpty(wantedFile)) {
-					Logging.ToLog("DataProvider - Не удалось найти изображение для сотрудника: " + name);
-					return string.Empty;
-				}
-
-				return wantedFile;
+				Logging.ToLog("DataProvider - Не удалось найти изображение для сотрудника: " + name);
 			} catch (Exception e) {
 				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
-				return string.Empty;
+			}
+
+			return GetBitmapFromFile("pack://application:,,,/Infoscreen;component/Media/DoctorWithoutAPhoto.png");
+		}
+
+		public static BitmapImage GetImageForDepartment(string depname) {
+			try {
+				string wantedFile = Path.Combine(localDepartmentPhotosPath, depname + ".png");
+
+				if (File.Exists(wantedFile)) 
+					return GetBitmapFromFile(wantedFile);
+			} catch (Exception e) {
+				Logging.ToLog("Не удалось открыть файл с изображением: " + e.Message +
+					Environment.NewLine + e.StackTrace);
+			}
+
+			return GetBitmapFromFile("pack://application:,,,/Infoscreen;component/Media/UnknownDepartment.png");
+		}
+
+		private static BitmapImage GetBitmapFromFile(string file) {
+			if (file.StartsWith("pack"))
+				return new BitmapImage(new Uri(file));
+
+			try {
+				using (FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+					BitmapImage bitmapImage = new BitmapImage();
+					stream.Seek(0, SeekOrigin.Begin);
+					bitmapImage.BeginInit();
+					bitmapImage.CreateOptions = BitmapCreateOptions.PreservePixelFormat | BitmapCreateOptions.IgnoreColorProfile;
+					bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+					bitmapImage.StreamSource = stream;
+					bitmapImage.EndInit();
+					return bitmapImage;
+				}
+			} catch (Exception e) {
+				Logging.ToLog("DataProvider - GetBitmapFromFile: " + file + " - " + e.Message + Environment.NewLine + e.StackTrace);
+				return null;
 			}
 		}
 
+		private string ClearDoctorName(string name) {
+			if (name.Contains('(')) {
+				name = name.Substring(0, name.IndexOf('('));
+				name = name.TrimEnd(' ');
+			}
 
+			return name;
+		}
 
+		public Timetable GetTimeTable() {
+			Logging.ToLog("DataProvider - получение расписания");
+			Timetable timetable = new Timetable();
+
+			DataTable dataTable = firebirdClient.GetDataTable(
+				configuration.DataBaseQueryTimetable, new Dictionary<string, object>());
+
+			if (dataTable.Rows.Count == 0) {
+				Logging.ToLog("DataProvider - не удалось получить данные расписания");
+				return null;
+			}
+
+			foreach (DataRow row in dataTable.Rows) {
+				string depName = row["DEPNAME"].ToString();
+				string docName = ClearDoctorName(row["FULLNAME"].ToString());
+				string d0 = row["D0"].ToString();
+				string d1 = row["D1"].ToString();
+				string d2 = row["D2"].ToString();
+				string d3 = row["D3"].ToString();
+				string d4 = row["D4"].ToString();
+				string d5 = row["D5"].ToString();
+				string d6 = row["D6"].ToString();
+
+				Timetable.DocInfo docInfo = new Timetable.DocInfo(docName, d0, d1, d2, d3, d4, d5, d6);
+
+				if (!timetable.departments.ContainsKey(depName))
+					timetable.departments.Add(depName, new Timetable.Department());
+
+				if (!timetable.departments[depName].doctors.ContainsKey(docName))
+					timetable.departments[depName].doctors.Add(docName, docInfo);
+				  
+			}
+
+			return timetable;
+		}
+
+		public class Timetable {
+			public SortedDictionary<string, Department> departments = new SortedDictionary<string, Department>();
+
+			public class Department {
+				public SortedDictionary<string, DocInfo> doctors = new SortedDictionary<string, DocInfo>();
+			}
+
+			public class DocInfo {
+				public string name;
+				public SortedDictionary<string, string> timeTable = new SortedDictionary<string, string>();
+
+				public DocInfo(string name, string d0, string d1, string d2, string d3, string d4, string d5, string d6) {
+					this.name = name;
+					timeTable.Add("d0", d0);
+					timeTable.Add("d1", d1);
+					timeTable.Add("d2", d2);
+					timeTable.Add("d3", d3);
+					timeTable.Add("d4", d4);
+					timeTable.Add("d5", d5);
+					timeTable.Add("d6", d6);
+				}
+			}
+		}
 
 		public class ItemChair {
 			public enum Status { NotConducted, Free, Invitation, Underway, Delayed }

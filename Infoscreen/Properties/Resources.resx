@@ -132,24 +132,12 @@ WITH a AS (
 SELECT chid,
        x.rnum,
        CASE
-           WHEN x.starttreat=1
-                AND x.isdelay=1 THEN 10 --'Приём задерживается'
-
-           WHEN x.starttreat=1
-                AND x.isdelay=0 THEN 20 --'Идёт приём'
-
-           WHEN x.starttreat=0
-                AND x.actual=1
-                AND x.sortactual=1 THEN 30 --'Пройдите на приём'
-
-           WHEN x.starttreat=0
-                AND x.actual=1
-                AND x.sortactual=0 THEN 31 --'Пройдите на приём'
-
+           WHEN x.starttreat=1 AND x.isdelay=1 THEN 10 --'Приём задерживается'
+           WHEN x.starttreat=1 AND x.isdelay=0 THEN 20 --'Идёт приём'
+           WHEN x.starttreat=0 AND x.actual=1 AND x.sortactual=1 THEN 30 --'Пройдите на приём'
+           WHEN x.starttreat=0 AND x.actual=1 AND x.sortactual=0 THEN 31 --'Пройдите на приём'
            WHEN x.DSINFO IS NOT NULL THEN 40 --'Кабинет свободен'
-
            ELSE 50 --'Нет приёма'
-
        END status,
        iif(x.starttreat=0
            AND x.actual=1,
@@ -158,8 +146,7 @@ SELECT chid,
               WHERE pcode=x.pcode),NULL) acfullname /*при 'Пройдите на приём'*/ ,
        iif(x.starttreat=1
            AND x.isdelay=0
-           AND et-ct&lt;et-st, et-ct-1, NULL) timeleft /*при 'Идёт приём'*/ ,
-       x.DSINFO
+           AND et-ct&lt;et-st, et-ct-1, NULL) timeleft /*при 'Идёт приём'*/ , x.DSINFO
 FROM (
 SELECT c.chid,
        c.ct,
@@ -167,21 +154,10 @@ SELECT c.chid,
        s.et,
        s.pcode,
        c.rnum,
-       iif(c.ct-st&gt;
-
-=0
-AND c.ct-et&lt;0,
-    1,
-    0) SORTACTUAL,
-       iif(c.ct-st&gt;
-
-=-5
-AND c.ct-et&lt;0,
-    1,
-    0) ACTUAL /*ACTUAL (c.ct-st&gt;=_ приглашать за _ мин до начала приема, c.ct-et&lt;_ мин после конца приёма) !изменяются синхронно! */ ,
+       iif(c.ct-st&gt;=0 AND c.ct-et&lt;0, 1, 0) SORTACTUAL,
+       iif(c.ct-st&gt;=-5 AND c.ct-et&lt;0, 1, 0) ACTUAL /*ACTUAL (c.ct-st&gt;=_ приглашать за _ мин до начала приема, c.ct-et&lt;_ мин после конца приёма) !изменяются синхронно! */ ,
        iif(s.starttreat IS NULL, 0, 1) starttreat,
        iif(s.et&lt;=c.ct+1, 1, 0) isdelay,
-
   (SELECT list(d.fullname, '@') ||'|'|| list(profname, '@') ||'|'|| list(depname, '@') ||'|'|| lpad(cast(min(beghour||':'||begmin) AS TIME), 5)||' - '||lpad(cast(min(endhour||':'||endmin) AS TIME), 5) INFO
    FROM doctshedule ds
    JOIN doctor d ON d.dcode=ds.dcode
@@ -193,18 +169,12 @@ AND c.ct-et&lt;0,
      AND (endhour*60+endmin)&gt;c.ct ) DSINFO
 FROM
   (SELECT id chid,
-
      (SELECT r.rnum
       FROM chairs ch
-      JOIN
-        (SELECT rid,
-                rnum
-         FROM rooms) r ON r.rid=ch.rid
+      JOIN (SELECT rid, rnum FROM rooms) r ON r.rid=ch.rid
       WHERE ch.chid=id) rnum,
-          extract(hour
-                  FROM CURRENT_TIME)*60+extract(MINUTE
-                                                FROM CURRENT_TIME) ct
-   FROM mrgetlist(@chairList)) c
+          extract(hour FROM CURRENT_TIME)*60+extract(MINUTE FROM CURRENT_TIME) ct
+   FROM mrgetlist('991984778, 991986857')) c
 LEFT JOIN
   (SELECT bhour*60+bmin ST,
           fhour*60+fmin ET,
@@ -222,19 +192,69 @@ SELECT a.chid,
        a.dsinfo
 FROM a
 JOIN
-  (SELECT chid,
-          min(status) status
+  (SELECT chid, min(status) status
    FROM a
    GROUP BY 1) srt ON srt.chid=a.chid
 AND srt.status=a.status
-GROUP BY 1,
-         2,
-         3,
-         4,
-         5,
-         6</value>
+GROUP BY 1, 2, 3, 4, 5, 6</value>
   </data>
   <data name="SqlQueryTimetable" xml:space="preserve">
-    <value />
+    <value>-- ver 1.0
+select depname,fullname,d0,d1,d2,d3,d4,d5,d6
+from
+(
+select
+    upper(dp.depname) depname
+  , d.fullname
+  , ds.depnum
+  , ds.dcode
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,0,current_date)) d0
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,1,current_date)) d1
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,2,current_date)) d2
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,3,current_date)) d3
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,4,current_date)) d4
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,5,current_date)) d5
+  , (select lpad(dateadd(minute,min(ds0.beghour*60+ds0.begmin),cast('00:00' as time)),5)||' - '||lpad(dateadd(minute,max(ds0.endhour*60+ds0.endmin),cast('00:00' as time)),5) from doctshedule ds0
+     where ds0.depnum=ds.depnum and ds0.dcode=ds.dcode and ds0.wdate=dateadd(day,6,current_date)) d6
+from
+  doctshedule ds
+  , (select outdate from getdate(current_date,dateadd(day,6,current_date))) x
+  , departments dp
+  , doctor d
+where
+  x.outdate = ds.wdate
+  and ds.depnum = dp.depnum
+  and ds.dcode = d.dcode
+
+  and ds.depnum is not null
+  and coalesce(ds.CHAIR,-1) &lt;&gt; -1
+
+  -- Исключения --
+  and ds.depnum+0 not in
+  (
+  991325710, --ВРАЧИ ОФИСА
+  992112048, --КАБИНЕТЫ ДРС
+  991317990, --ЛИЧНЫЙ ВРАЧ
+  991306861, --МАССАЖ НА ДОМУ
+  990386480, --ОБЩЕЕ
+  992120358, --ОБЩЕЕ ПЕДИАТРИЯ
+  991491433, --ОТДЕЛЕНИЕ ЛВ
+  990833277, --ОТДЕЛЕНИЕ ПНД
+  10029098,  --ПОМОЩЬ НА ДОМУ
+  991330975, --ПРЕДРЕЙСОВЫЙ ОСМОТР
+  821,       --ПРОЦЕДУРНЫЙ
+  991382360, --ПРОЦЕДУРНЫЙ (ДЕТСКИЙ)
+  991330843, --СКОРАЯ МЕДИЦИНСКАЯ ПОМОЩЬ
+  992092102, --ТЕЛЕМЕДИЦИНА
+  991135669 --УЗКИЕ СПЕЦИАЛИСТЫ НА ДОМУ
+  )
+group by 1,2,3,4
+)</value>
   </data>
 </root>

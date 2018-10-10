@@ -121,6 +121,15 @@ namespace Infoscreen {
 			return false;
 		}
 
+		public bool IsSystemWorkAsTimetable() {
+			try {
+				return SystemItems.Where(x => x.SystemName.ToLower().Equals(Environment.MachineName.ToLower())).First().IsTimetable;
+			} catch (Exception exc) {
+				Logging.ToLog("MainWindow - " + exc.Message + Environment.NewLine + exc.StackTrace);
+			}
+
+			return false;
+		}
 
 
 		public static bool LoadConfiguration(string configFilePath, out Configuration configuration) {
@@ -131,21 +140,23 @@ namespace Infoscreen {
 				return false;
 
 			try {
-				FileStream fileStream = new FileStream(configFilePath, FileMode.Open);
-				XmlSerializer xmlSerializer = new XmlSerializer(typeof(Configuration));
-				xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog(e.ExpectedAttributes); };
-				xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog(e.ExpectedElements); };
-				xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog(e.Name); };
-				xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog(e.UnreferencedId); };
-				configuration = (Configuration)xmlSerializer.Deserialize(fileStream);
-				configuration.IsConfigReadedSuccessfull = true;
-				configuration.ConfigFilePath = configFilePath;
+				using (FileStream fileStream = new FileStream(configFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+					XmlSerializer xmlSerializer = new XmlSerializer(typeof(Configuration));
+					xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog(e.ExpectedAttributes); };
+					xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog(e.ExpectedElements); };
+					xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog(e.Name); };
+					xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog(e.UnreferencedId); };
+					configuration = (Configuration)xmlSerializer.Deserialize(fileStream);
+					configuration.IsConfigReadedSuccessfull = true;
+					configuration.ConfigFilePath = configFilePath;
 
-				return true;
+					return true;
+				}
 			} catch (Exception e) {
 				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
-				return false;
 			}
+
+			return false;
 		}
 
 		public static bool SaveConfiguration(Configuration configuration) {

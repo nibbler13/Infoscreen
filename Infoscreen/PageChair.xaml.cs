@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -80,43 +81,43 @@ namespace Infoscreen
 				TextBlockEmployeeName.Text = employee.Name;
 				TextBlockEmployeePosition.Text = employee.Position;
 				TextBlockWorkingTime.Text = "Приём ведётся с " + employee.WorkingTime;
-				string photo = dataProvider.GetImageForDoctor(employee.Name);
-
-				if (string.IsNullOrEmpty(photo)) {
-					var logo = new BitmapImage();
-					logo.BeginInit();
-					logo.UriSource = new Uri("pack://application:,,,/Infoscreen;component/Media/DoctorWithoutAPhoto.png");
-					logo.EndInit();
-					ImageEmployee.Source = logo;
-				} else {
-					ImageEmployee.Source = new BitmapImage(new Uri(photo));
-				}
+				ImageEmployee.Source = DataProvider.GetImageForDoctor(employee.Name);
 			} else if (statusInfo.employees.Count > 1) {
 				StackPanelMultipleEmployees.Children.Clear();
 				TextBlockDepartment.Text = string.Empty;
 
 				foreach (DataProvider.ItemChair.Employee employee in statusInfo.employees) {
-					TextBlockDepartment.Text += employee.Department + ", ";
+					if (!TextBlockDepartment.Text.Contains(employee.Department))
+						TextBlockDepartment.Text += employee.Department + ", ";
 
-					TextBlock textBlockDoc = new TextBlock();
-					textBlockDoc.Text = employee.Name + " - " + employee.Position;
-					textBlockDoc.TextWrapping = TextWrapping.Wrap;
-					textBlockDoc.FontFamily = new FontFamily("Franklin Gothic Book");
-					textBlockDoc.HorizontalAlignment = HorizontalAlignment.Center;
+					TextBlock textBlockDocName = new TextBlock();
+					textBlockDocName.Text = employee.Name;
+					textBlockDocName.TextWrapping = TextWrapping.Wrap;
+					textBlockDocName.FontFamily = new FontFamily("Franklin Gothic Book");
+					textBlockDocName.HorizontalAlignment = HorizontalAlignment.Center;
 
+
+					TextBlock textBlockDocPosition = new TextBlock();
+					textBlockDocPosition.Text = employee.Position;
+					textBlockDocPosition.TextWrapping = TextWrapping.Wrap;
+					textBlockDocPosition.FontFamily = new FontFamily("Franklin Gothic Book");
+					textBlockDocPosition.Foreground = new SolidColorBrush(Colors.Gray);
+					textBlockDocPosition.HorizontalAlignment = HorizontalAlignment.Center;
+					textBlockDocPosition.FontSize = 30;
 
 					TextBlock textBlockWorkingTime = new TextBlock();
 					textBlockWorkingTime.Text = "Приём ведётся с " + employee.WorkingTime;
 					textBlockWorkingTime.TextWrapping = TextWrapping.Wrap;
 					textBlockWorkingTime.FontFamily = new FontFamily("Franklin Gothic Book");
-					textBlockWorkingTime.FontSize = 40;
+					textBlockWorkingTime.FontSize = 30;
 					textBlockWorkingTime.Foreground = new SolidColorBrush(Colors.Gray);
 					textBlockWorkingTime.HorizontalAlignment = HorizontalAlignment.Center;
 
 					if (!employee.Equals(statusInfo.employees.Last()))
 						textBlockWorkingTime.Margin = new Thickness(0, 0, 0, 10);
 
-					StackPanelMultipleEmployees.Children.Add(textBlockDoc);
+					StackPanelMultipleEmployees.Children.Add(textBlockDocName);
+					StackPanelMultipleEmployees.Children.Add(textBlockDocPosition);
 					StackPanelMultipleEmployees.Children.Add(textBlockWorkingTime);
 				}
 
