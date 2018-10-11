@@ -42,6 +42,8 @@ namespace Infoscreen {
 		private Advertisement advertisement;
 
 
+
+
 		public MainWindow(string configFilePath, string advertisementFilePath) {
 			Logging.ToLog("MainWindow - Создание основного окна приложения");
 
@@ -66,18 +68,7 @@ namespace Infoscreen {
 		}
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
-			DispatcherTimer timerSecondsTick = new DispatcherTimer();
-			timerSecondsTick.Interval = TimeSpan.FromSeconds(1);
-			timerSecondsTick.Tick += (s, ev) => {
-				Application.Current.Dispatcher.Invoke((Action)delegate {
-					TextBlockTimeSplitter.Visibility =
-						TextBlockTimeSplitter.Visibility == Visibility.Visible ?
-						Visibility.Hidden : Visibility.Visible;
-					TextBlockTimeHours.Text = DateTime.Now.Hour.ToString();
-					TextBlockTimeMinutes.Text = DateTime.Now.ToString("mm");
-				});
-			};
-			timerSecondsTick.Start();
+			StartTimeDelimiterTick();
 
 			await Task.Run(() => {
 				Configuration.LoadConfiguration(configFilePath, out configuration);
@@ -93,16 +84,7 @@ namespace Infoscreen {
 			dataProvider = new DataProvider(configuration);
 
 			if (configuration.IsSystemWorkAsTimetable()) {
-				TextBlockRoom.Text = "Расписание работы сотрудников";
-				DispatcherTimer timerUpdateTimetable = new DispatcherTimer();
-				timerUpdateTimetable.Interval = TimeSpan.FromSeconds(configuration.TimetableRotateIntervalInSeconds);
-				timerUpdateTimetable.Tick += TimerUpdateTimetable_Tick;
-				timerUpdateTimetable.Start();
-				TimerUpdateTimetable_Tick(timerUpdateTimetable, new EventArgs());
-
-				if (Debugger.IsAttached)
-					WindowState = WindowState.Maximized;
-
+				StartTimeTable();
 				return;
 			}
 
@@ -110,14 +92,9 @@ namespace Infoscreen {
 				Advertisement.LoadAdvertisement(advertisementFilePath, out advertisement);
 			});
 
-			if (!advertisement.DisableAdDisplay && advertisement.AdvertisementItemsToShow.Count > 0) {
-				Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
-				DispatcherTimer timerShowAdvertisement = new DispatcherTimer();
-				timerShowAdvertisement.Interval = TimeSpan.FromSeconds(25 + advertisement.PauseBetweenAdInSeconds);
-				timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
-				timerShowAdvertisement.Start();
-				TimerShowAdvertisement_Tick(timerShowAdvertisement, new EventArgs());
-			} else
+			if (!advertisement.DisableAdDisplay && advertisement.AdvertisementItemsToShow.Count > 0) 
+				StartAdvertisement();
+			else
 				Logging.ToLog("MainWindow - пропуск отображения рекламы в соответствии с настройками");
 
 
@@ -129,17 +106,8 @@ namespace Infoscreen {
 
 			isLiveQueue = configuration.IsSystemHasLiveQueue();
 
-			Logging.ToLog("MainWindow - Запуск таймера обновления данных");
-			DispatcherTimer timerUpdateData = new DispatcherTimer();
-			timerUpdateData.Interval = TimeSpan.FromSeconds(configuration.DatabaseQueryExecutionIntervalInSeconds);
-			timerUpdateData.Tick += (s, ev) => { dataProvider.UpdateData(); };
-			timerUpdateData.Start();
-
-			Logging.ToLog("MainWindow - Запуск таймера обновления фотографий");
-			DispatcherTimer timerUpdatePhotos = new DispatcherTimer();
-			timerUpdatePhotos.Interval = TimeSpan.FromSeconds(configuration.DoctorsPhotoUpdateIntervalInSeconds);
-			timerUpdatePhotos.Tick += (s, ev) => { dataProvider.UpdateDoctorsPhoto(); };
-			timerUpdatePhotos.Start();
+			StartUpdateChairs();
+			StartUpdateDoctorsPhotos();
 
 			dataProvider.OnUpdateCompleted += DataProvider_OnUpdateCompleted;
 			dataProvider.UpdateData();
@@ -148,10 +116,87 @@ namespace Infoscreen {
 
 
 
+
+		private void StartTimeDelimiterTick() {
+			DispatcherTimer timerTimeDilimeterTick = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(1)
+			};
+
+			timerTimeDilimeterTick.Tick += (s, ev) => {
+				Application.Current.Dispatcher.Invoke((Action)delegate {
+					TextBlockTimeSplitter.Visibility =
+						TextBlockTimeSplitter.Visibility == Visibility.Visible ?
+						Visibility.Hidden : Visibility.Visible;
+					TextBlockTimeHours.Text = DateTime.Now.Hour.ToString();
+					TextBlockTimeMinutes.Text = DateTime.Now.ToString("mm");
+				});
+			};
+			timerTimeDilimeterTick.Start();
+		}
+
+		private void StartTimeTable() {
+			TextBlockRoom.Text = "Расписание работы сотрудников";
+			DispatcherTimer timerUpdateTimetable = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(configuration.TimetableRotateIntervalInSeconds)
+			};
+
+			timerUpdateTimetable.Tick += TimerUpdateTimetable_Tick;
+			timerUpdateTimetable.Start();
+			TimerUpdateTimetable_Tick(timerUpdateTimetable, new EventArgs());
+
+			if (Debugger.IsAttached)
+				WindowState = WindowState.Maximized;
+		}
+
+		private void StartAdvertisement() {
+			Logging.ToLog("MainWindow - Запуск таймера отображения рекламы");
+			DispatcherTimer timerShowAdvertisement = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(25 + advertisement.PauseBetweenAdInSeconds)
+			};
+
+			timerShowAdvertisement.Tick += TimerShowAdvertisement_Tick;
+			timerShowAdvertisement.Start();
+			TimerShowAdvertisement_Tick(timerShowAdvertisement, new EventArgs());
+		}
+
+		private void StartUpdateChairs() {
+			Logging.ToLog("MainWindow - Запуск таймера обновления данных о кабинках");
+			DispatcherTimer timerUpdateData = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(configuration.DatabaseQueryExecutionIntervalInSeconds)
+			};
+
+			timerUpdateData.Tick += (s, ev) => { dataProvider.UpdateData(); };
+			timerUpdateData.Start();
+		}
+
+		private void StartUpdateDoctorsPhotos() {
+			Logging.ToLog("MainWindow - Запуск таймера обновления фотографий");
+			DispatcherTimer timerUpdatePhotos = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(configuration.DoctorsPhotoUpdateIntervalInSeconds)
+			};
+
+			timerUpdatePhotos.Tick += (s, ev) => { dataProvider.UpdateDoctorsPhoto(); };
+			timerUpdatePhotos.Start();
+		}
+
+		private void StartChairSwitch() {
+			DispatcherTimer timerChangePage = new DispatcherTimer();
+			timerChangePage = new DispatcherTimer {
+				Interval = TimeSpan.FromSeconds(configuration.ChairPagesRotateIntervalInSeconds)
+			};
+
+			timerChangePage.Tick += TimerChangePage_Tick;
+			timerChangePage.Start();
+		}
+
+
+
+
 		private async void TimerUpdateTimetable_Tick(object sender, EventArgs e) {
 			Logging.ToLog("MainWindow - Обновление расписания");
 			StackPanelPageIndicator.Children.Clear();
 			DataProvider.Timetable timetableInitial = dataProvider.GetTimeTable();
+
 			if (timetableInitial == null) {
 				Logging.ToLog("MainWindow - не удалось получить информацию о расписании, " +
 					"пропуск показа, переход на страницу с ошибкой");
@@ -170,9 +215,7 @@ namespace Infoscreen {
 				}
 			}
 
-			DispatcherTimer dispatcherTimer = sender as DispatcherTimer;
-
-			if (dispatcherTimer == null)
+			if (!(sender is DispatcherTimer dispatcherTimer))
 				return;
 
 			dispatcherTimer.Stop();
@@ -181,50 +224,61 @@ namespace Infoscreen {
 			Dictionary<PageTimetable, Border> pagesTimetable = new Dictionary<PageTimetable, Border>();
 			int row = 0;
 
-			foreach (KeyValuePair<string, DataProvider.Timetable.Department> departmentPair in timetableInitial.departments) {
-				if (row >= 12) {
-					pagesTimetable.Add(new PageTimetable(timetableToShow), CreateIndicator());
-					row = 0;
-					timetableToShow.departments.Clear();
-				}
-
-				timetableToShow.departments.Add(departmentPair.Key, new DataProvider.Timetable.Department());
-				row++;
-
-				foreach (KeyValuePair<string, DataProvider.Timetable.DocInfo> docInfoPair in departmentPair.Value.doctors) {
-					timetableToShow.departments[departmentPair.Key].doctors.Add(docInfoPair.Key, docInfoPair.Value);
-					row++;
-
-					if (row == 13) {
+			Logging.ToLog("MainWindow - Создание страниц расписания");
+			try {
+				foreach (KeyValuePair<string, DataProvider.Timetable.Department> departmentPair in timetableInitial.departments) {
+					if (row >= 12) {
 						pagesTimetable.Add(new PageTimetable(timetableToShow), CreateIndicator());
 						row = 0;
 						timetableToShow.departments.Clear();
+					}
 
-						if (!docInfoPair.Equals(departmentPair.Value.doctors.Last())) {
-							timetableToShow.departments.Add(departmentPair.Key, new DataProvider.Timetable.Department());
-							row++;
+					timetableToShow.departments.Add(departmentPair.Key, new DataProvider.Timetable.Department());
+					row++;
+
+					foreach (KeyValuePair<string, DataProvider.Timetable.DocInfo> docInfoPair in departmentPair.Value.doctors) {
+						timetableToShow.departments[departmentPair.Key].doctors.Add(docInfoPair.Key, docInfoPair.Value);
+						row++;
+
+						if (row == 13) {
+							pagesTimetable.Add(new PageTimetable(timetableToShow), CreateIndicator());
+							row = 0;
+							timetableToShow.departments.Clear();
+
+							if (!docInfoPair.Equals(departmentPair.Value.doctors.Last())) {
+								timetableToShow.departments.Add(departmentPair.Key, new DataProvider.Timetable.Department());
+								row++;
+							}
 						}
 					}
 				}
+			} catch (Exception exc) {
+				Logging.ToLog(exc.Message + Environment.NewLine + exc.StackTrace);
+				return;
 			}
 
 			if (pagesTimetable.Count > 1)
 				foreach (Border border in pagesTimetable.Values) 
 					StackPanelPageIndicator.Children.Add(border);
 
-			foreach (KeyValuePair<PageTimetable, Border> pagePair in pagesTimetable) {
-				pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.Gray;
-				pagesTimetable.Values.ToList()[currentPageIndex].Height = 10;
-				
-				FrameChair.Navigate(pagePair.Key);
-				await PutTaskDelay();
+			Logging.ToLog("MainWindow - Отображение страниц расписания");
+			try {
+				foreach (KeyValuePair<PageTimetable, Border> pagePair in pagesTimetable) {
+					pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.Gray;
+					pagesTimetable.Values.ToList()[currentPageIndex].Height = 10;
 
-				pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.LightGray;
-				pagesTimetable.Values.ToList()[currentPageIndex].Height = 5;
-				currentPageIndex++;
+					FrameChair.Navigate(pagePair.Key);
+					await PutTaskDelay();
 
-				if (currentPageIndex == pagesTimetable.Count)
-					currentPageIndex = 0;
+					pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.LightGray;
+					pagesTimetable.Values.ToList()[currentPageIndex].Height = 5;
+					currentPageIndex++;
+
+					if (currentPageIndex == pagesTimetable.Count)
+						currentPageIndex = 0;
+				}
+			} catch (Exception exc) {
+				Logging.ToLog(exc.Message + Environment.NewLine + exc.StackTrace);
 			}
 			
 			dispatcherTimer.Start();
@@ -308,9 +362,14 @@ namespace Infoscreen {
 			}
 
 			if (isErrorPageShowing) {
-				isErrorPageShowing = false;
-				if (FrameChair.CanGoBack)
-					FrameChair.GoBack();
+				try {
+					isErrorPageShowing = false;
+					if (FrameChair.CanGoBack)
+						FrameChair.GoBack();
+				} catch (Exception exc) {
+					Logging.ToLog(exc.Message + Environment.NewLine + exc.StackTrace);
+					return;
+				}
 			}
 
 			if (isChairPagesCreationCompleted)
@@ -332,13 +391,8 @@ namespace Infoscreen {
 					chairPages.Add(pageChair, border);
 				}
 
-				if (chairPages.Count > 1) {
-					DispatcherTimer timerChangePage = new DispatcherTimer();
-					timerChangePage = new DispatcherTimer();
-					timerChangePage.Interval = TimeSpan.FromSeconds(configuration.ChairPagesRotateIntervalInSeconds);
-					timerChangePage.Tick += TimerChangePage_Tick;
-					timerChangePage.Start();
-				}
+				if (chairPages.Count > 1) 
+					StartChairSwitch();
 
 				NavigateToPage();
 			}

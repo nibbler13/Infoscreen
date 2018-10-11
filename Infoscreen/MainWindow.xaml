@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="Infoscreen" 
         Width="1280"
-        Height="1024" 
+        Height="720" 
         WindowStartupLocation="CenterScreen"
         FontFamily="Franklin Gothic"
         FontWeight="Light"

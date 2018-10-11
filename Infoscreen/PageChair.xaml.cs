@@ -44,24 +44,28 @@ namespace Infoscreen
 		}
 
 		private void UpdateState() {
-			if (!dataProvider.ChairsDict.ContainsKey(ChID)) {
-				Logging.ToLog("PageChair - отсутствует chid " + ChID + " в результате запроса DataProvider, пропуск обновления");
-				return;
-			}
+			try {
+				if (!dataProvider.ChairsDict.ContainsKey(ChID)) {
+					Logging.ToLog("PageChair - отсутствует chid " + ChID + " в результате запроса DataProvider, пропуск обновления");
+					return;
+				}
 
-			DataProvider.ItemChair.StatusInfo statusInfo = dataProvider.ChairsDict[ChID].CurrentState;
+				DataProvider.ItemChair.StatusInfo statusInfo = dataProvider.ChairsDict[ChID].CurrentState;
 
-			switch (statusInfo.Status) {
-				case DataProvider.ItemChair.Status.Free:
-				case DataProvider.ItemChair.Status.Invitation:
-				case DataProvider.ItemChair.Status.Underway:
-				case DataProvider.ItemChair.Status.Delayed:
-					ShowReceptionIsConducted(statusInfo);
-					break;
-				case DataProvider.ItemChair.Status.NotConducted:
-				default:
-					ShowReceptionIsNotConducted();
-					break;
+				switch (statusInfo.Status) {
+					case DataProvider.ItemChair.Status.Free:
+					case DataProvider.ItemChair.Status.Invitation:
+					case DataProvider.ItemChair.Status.Underway:
+					case DataProvider.ItemChair.Status.Delayed:
+						ShowReceptionIsConducted(statusInfo);
+						break;
+					case DataProvider.ItemChair.Status.NotConducted:
+					default:
+						ShowReceptionIsNotConducted();
+						break;
+				}
+			} catch (Exception e) {
+				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
 			}
 		}
 
@@ -90,28 +94,31 @@ namespace Infoscreen
 					if (!TextBlockDepartment.Text.Contains(employee.Department))
 						TextBlockDepartment.Text += employee.Department + ", ";
 
-					TextBlock textBlockDocName = new TextBlock();
-					textBlockDocName.Text = employee.Name;
-					textBlockDocName.TextWrapping = TextWrapping.Wrap;
-					textBlockDocName.FontFamily = new FontFamily("Franklin Gothic Book");
-					textBlockDocName.HorizontalAlignment = HorizontalAlignment.Center;
+					TextBlock textBlockDocName = new TextBlock {
+						Text = employee.Name,
+						TextWrapping = TextWrapping.Wrap,
+						FontFamily = new FontFamily("Franklin Gothic Book"),
+						HorizontalAlignment = HorizontalAlignment.Center
+					};
 
 
-					TextBlock textBlockDocPosition = new TextBlock();
-					textBlockDocPosition.Text = employee.Position;
-					textBlockDocPosition.TextWrapping = TextWrapping.Wrap;
-					textBlockDocPosition.FontFamily = new FontFamily("Franklin Gothic Book");
-					textBlockDocPosition.Foreground = new SolidColorBrush(Colors.Gray);
-					textBlockDocPosition.HorizontalAlignment = HorizontalAlignment.Center;
-					textBlockDocPosition.FontSize = 30;
+					TextBlock textBlockDocPosition = new TextBlock {
+						Text = employee.Position,
+						TextWrapping = TextWrapping.Wrap,
+						FontFamily = new FontFamily("Franklin Gothic Book"),
+						Foreground = new SolidColorBrush(Colors.Gray),
+						HorizontalAlignment = HorizontalAlignment.Center,
+						FontSize = 30
+					};
 
-					TextBlock textBlockWorkingTime = new TextBlock();
-					textBlockWorkingTime.Text = "Приём ведётся с " + employee.WorkingTime;
-					textBlockWorkingTime.TextWrapping = TextWrapping.Wrap;
-					textBlockWorkingTime.FontFamily = new FontFamily("Franklin Gothic Book");
-					textBlockWorkingTime.FontSize = 30;
-					textBlockWorkingTime.Foreground = new SolidColorBrush(Colors.Gray);
-					textBlockWorkingTime.HorizontalAlignment = HorizontalAlignment.Center;
+					TextBlock textBlockWorkingTime = new TextBlock {
+						Text = "Приём ведётся с " + employee.WorkingTime,
+						TextWrapping = TextWrapping.Wrap,
+						FontFamily = new FontFamily("Franklin Gothic Book"),
+						FontSize = 30,
+						Foreground = new SolidColorBrush(Colors.Gray),
+						HorizontalAlignment = HorizontalAlignment.Center
+					};
 
 					if (!employee.Equals(statusInfo.employees.Last()))
 						textBlockWorkingTime.Margin = new Thickness(0, 0, 0, 10);

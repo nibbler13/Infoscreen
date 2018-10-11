@@ -15,6 +15,8 @@ namespace Infoscreen {
 		private void Application_Startup(object sender, StartupEventArgs e) {
 			Logging.ToLog("App - ===== Запуск приложения");
 
+			DispatcherUnhandledException += App_DispatcherUnhandledException;
+
 			string configFilePath = string.Empty;
 			string advertisementFilePath = string.Empty;
 
@@ -36,6 +38,11 @@ namespace Infoscreen {
 			Logging.ToLog("App - путь к файлу информационных сообщений: " + advertisementFilePath);
 			MainWindow window = new MainWindow(configFilePath, advertisementFilePath);
 			window.Show();
+		}
+
+		private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
+			SystemMail.SendMail(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+			Shutdown();
 		}
 	}
 }

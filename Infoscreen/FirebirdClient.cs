@@ -11,21 +11,21 @@ namespace Infoscreen {
 		public FirebirdClient(string ipAddress, string baseName, string user, string pass) {
 			Logging.ToLog("FirebirdClient - Создание клиента Firebird");
 
-			FbConnectionStringBuilder cs = new FbConnectionStringBuilder {
-				DataSource = ipAddress,
-				Database = baseName,
-				UserID = user,
-				Password = pass,
-				Charset = "NONE",
-				Pooling = false
-			};
-
 			if (string.IsNullOrEmpty(ipAddress) ||
 				string.IsNullOrEmpty(baseName) ||
 				string.IsNullOrEmpty(user))
 				connection = new FbConnection();
-			else
+			else {
+				FbConnectionStringBuilder cs = new FbConnectionStringBuilder {
+					DataSource = ipAddress,
+					Database = baseName,
+					UserID = user,
+					Password = pass,
+					Charset = "NONE",
+					Pooling = false
+				};
 				connection = new FbConnection(cs.ToString());
+			}
 
 			IsConnectionOpened();
 		}

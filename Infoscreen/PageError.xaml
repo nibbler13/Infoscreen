@@ -10,7 +10,8 @@
       FontFamily="Franklin Gothic"
       FontSize="50"
       Title="PageError"
-      Foreground="#FF2D3D3F">
+      Foreground="#FF2D3D3F"
+      Background="#FF80f5ff">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -18,8 +19,9 @@
             <RowDefinition Height="88*"/>
         </Grid.RowDefinitions>
 
+        <!--Background="#ffffffbf"-->
         <Border Grid.Row="0"
-                Background="#ffffffbf">
+            Background="#FF004185">
             <Border.Effect>
                 <DropShadowEffect Opacity="0.4"/>
             </Border.Effect>
@@ -30,7 +32,8 @@
                    VerticalAlignment="Center"
                    Text="Уважаемые пациенты!"
                    TextWrapping="Wrap"
-                   FontWeight="Bold"/>
+                   FontWeight="Bold"
+                   Foreground="White"/>
 
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
