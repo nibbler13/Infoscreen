@@ -264,4 +264,4 @@ Infoscreen/Properties/Settings.Designer.cs
 *.config
 InfoscreenAdvertisementManager/Properties/Settings.Designer.cs
 InfoscreenConfigManager/Properties/Settings.Designer.cs
-"\Infoscreen\SystemMailCredentials.cs" 
+Infoscreen/SystemMailCredentials.cs 
