@@ -16,9 +16,6 @@ using System.Windows.Shapes;
 
 namespace Infoscreen
 {
-    /// <summary>
-    /// Логика взаимодействия для PageCabin.xaml
-    /// </summary>
     public partial class PageChair : Page {
 		private string ChID { get; set; }
 		public string RNum { get; private set; }
@@ -100,7 +97,6 @@ namespace Infoscreen
 						FontFamily = new FontFamily("Franklin Gothic Book"),
 						HorizontalAlignment = HorizontalAlignment.Center
 					};
-
 
 					TextBlock textBlockDocPosition = new TextBlock {
 						Text = employee.Position,

@@ -40,8 +40,8 @@ namespace Infoscreen {
 					message.Dispose();
 					Logging.ToLog("Письмо отправлено успешно");
 				};
-
-				client.SendAsync(message, null);
+				
+				client.Send(message);
 			} catch (Exception e) {
 				Logging.ToLog("SendMail exception: " + e.Message + Environment.NewLine + e.StackTrace);
 			}

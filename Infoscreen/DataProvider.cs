@@ -290,10 +290,8 @@ namespace Infoscreen {
 			DataTable dataTable = firebirdClient.GetDataTable(
 				configuration.DataBaseQueryTimetable, new Dictionary<string, object>());
 
-			if (dataTable.Rows.Count == 0) {
+			if (dataTable.Rows.Count == 0)
 				Logging.ToLog("DataProvider - не удалось получить данные расписания");
-				return null;
-			}
 
 			foreach (DataRow row in dataTable.Rows) {
 				try {

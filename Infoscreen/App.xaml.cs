@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,8 +42,10 @@ namespace Infoscreen {
 		}
 
 		private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
+			Logging.ToLog(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
 			SystemMail.SendMail(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
-			Shutdown();
+			Logging.ToLog("!!!App - Аварийное завершение работы");
+			Process.GetCurrentProcess().Kill();
 		}
 	}
 }
