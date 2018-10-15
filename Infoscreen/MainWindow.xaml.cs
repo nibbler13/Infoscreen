@@ -63,7 +63,12 @@ namespace Infoscreen {
 				WindowState = WindowState.Normal;
 			}
 
-			FrameMain.Navigated += (s, e) => { FrameMain.NavigationService.RemoveBackEntry(); };
+			FrameMain.Navigated += (s, e) => {
+				if (!(e.Content is PageError))
+					isErrorPageShowing = false;
+
+				FrameMain.NavigationService.RemoveBackEntry();
+			};
 		}
 
 		private async void MainWindow_Loaded(object sender, RoutedEventArgs e) {
@@ -74,15 +79,15 @@ namespace Infoscreen {
 			if (!configuration.IsConfigReadedSuccessfull) {
 				TextBlockTitle.Visibility = Visibility.Hidden;
 				Logging.ToLog("MainWindow - Во время считывания настроек возникла ошибка, переход на страницу с ошибкой");
-				FrameMain.Navigate(new PageError());
+				ShowErrorPage();
 				return;
 			}
 
 			dataProvider = new DataProvider(configuration);
 
 			if (configuration.IsSystemWorkAsTimetable()) {
-				//if (Debugger.IsAttached)
-				//	WindowState = WindowState.Maximized;
+				if (Debugger.IsAttached)
+					WindowState = WindowState.Maximized;
 
 				TimetableHandler timetableHandler = new TimetableHandler(dataProvider, configuration.TimetableRotateIntervalInSeconds);
 				timetableHandler.Start();

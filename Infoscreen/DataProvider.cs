@@ -54,7 +54,11 @@ namespace Infoscreen {
 				foreach (DataRow dataRow in dataTable.Rows)
 					try {
 						ItemChair itemChair = ParseItemChair(dataRow);
-						ChairsDict.Add(itemChair.ChID, itemChair);
+
+						if (!ChairsDict.ContainsKey(itemChair.ChID))
+							ChairsDict.Add(itemChair.ChID, itemChair);
+						else
+							Logging.ToLog("!!! DataProvider - элемент с ключом уже добавлен: " + itemChair.ChID);
 					} catch (Exception e) {
 						IsUpdateSuccessfull = false;
 						Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
@@ -118,7 +122,8 @@ namespace Infoscreen {
 				Logging.ToLog("DataProvider - Строка не содержит разделитель |, пропуск обработки");
 				return itemChair;
 			}
-					string[] docInfo = dsinfo.Split('|');
+
+			string[] docInfo = dsinfo.Split('|');
 			if (docInfo.Length != 4) {
 				Logging.ToLog("DataProvider - Количество элементов в строке не соответствует 4, пропуск обработки");
 				return itemChair;
