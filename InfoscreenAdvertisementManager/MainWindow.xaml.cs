@@ -23,6 +23,9 @@ namespace InfoscreenAdvertisementManager {
 	public partial class MainWindow : Window {
 		public MainWindow() {
 			InitializeComponent();
+
+			Infoscreen.Logging.ToLog("=== Запуск приложения Advertisement Manager, пользователь: " + Environment.UserName);
+
 			Loaded += MainWindow_Loaded;
 		}
 

@@ -29,6 +29,7 @@ namespace InfoscreenConfigManager {
 			InitializeComponent();
 			this.configuration = configuration;
 			DataContext = configuration;
+			Infoscreen.Logging.ToLog("Отображение раздела внутренних настроек");
 		}
 
 
@@ -87,25 +88,6 @@ namespace InfoscreenConfigManager {
 		private void ButtonSaveConfig_Click(object sender, RoutedEventArgs e) {
 			string errorMsg = string.Empty;
 
-			//if (string.IsNullOrEmpty(configuration.ChairPagesRotateIntervalInSeconds) ||
-			//	string.IsNullOrWhiteSpace(configuration.ChairPagesRotateIntervalInSeconds))
-			//	errorMsg += Environment.NewLine + "Поле 'таймеры - переключение страниц кресел' не может быть пустым";
-
-			//if (string.IsNullOrEmpty(TimetableRotateIntervalInSeconds) ||
-			//	string.IsNullOrWhiteSpace(TimetableRotateIntervalInSeconds))
-			//	errorMsg += Environment.NewLine + "Поле 'таймеры - переключение страниц расписания' не может быть пустым";
-
-
-			//if (string.IsNullOrEmpty(DatabaseUpdateIntervalInSeconds) ||
-			//	string.IsNullOrWhiteSpace(DatabaseUpdateIntervalInSeconds))
-			//	errorMsg += Environment.NewLine + "Поле 'таймеры - обновление данных' не может быть пустым";
-
-
-			//if (string.IsNullOrEmpty(PhotosUpdateIntervalInSeconds) ||
-			//	string.IsNullOrWhiteSpace(PhotosUpdateIntervalInSeconds))
-			//	errorMsg += Environment.NewLine + "Поле 'таймеры - обновление фотографий' не может быть пустым";
-
-
 			if (string.IsNullOrEmpty(configuration.DataBaseAddress) ||
 				string.IsNullOrWhiteSpace(configuration.DataBaseAddress))
 				errorMsg += Environment.NewLine + "Поле 'подключение к БД МИС Инфоклиника - адрес' не может быть пустым";
@@ -138,9 +120,11 @@ namespace InfoscreenConfigManager {
 			}
 
 			try {
-				if (Infoscreen.Configuration.SaveConfiguration(configuration))
+				if (Infoscreen.Configuration.SaveConfiguration(configuration)) {
 					MessageBox.Show(Window.GetWindow(this), "Конфигурация успешно сохранена в файл: " + configuration.ConfigFilePath,
 						"", MessageBoxButton.OK, MessageBoxImage.Information);
+					Infoscreen.Logging.ToLog("Сохранение внутренних настроек");
+				}
 				else
 					MessageBox.Show(Window.GetWindow(this), "Возникла ошибка при сохранении конфигурации в файл: " + configuration.ConfigFilePath +
 						". Подробности в журнале работы.", "", MessageBoxButton.OK, MessageBoxImage.Error);

@@ -65,9 +65,11 @@ namespace InfoscreenAdvertisementManager {
 				return;
 			}
 
-			if (advertisement.SaveAdvertisements(out string error))
+			if (advertisement.SaveAdvertisements(out string error)) {
 				MessageBox.Show(Application.Current.MainWindow, "Изменения успешно сохранены", "",
 					MessageBoxButton.OK, MessageBoxImage.Information);
+				Infoscreen.Logging.ToLog("Сохранение изменений");
+			}
 			else
 				MessageBox.Show(Application.Current.MainWindow, "При сохранении возникла ошибка: " + error, "", 
 					MessageBoxButton.OK, MessageBoxImage.Error);
@@ -86,11 +88,14 @@ namespace InfoscreenAdvertisementManager {
 			foreach (Infoscreen.Advertisement.ItemAdvertisement item in DataGridItemAdvertisement.SelectedItems)
 				itemsToDelete.Add(item);
 
-			foreach (Infoscreen.Advertisement.ItemAdvertisement item in itemsToDelete)
+			foreach (Infoscreen.Advertisement.ItemAdvertisement item in itemsToDelete) {
+				Infoscreen.Logging.ToLog("Удаление сообщения: " + item.Title + ", " + item.Body + ", " + item.PostScriptum);
 				advertisement.AdvertisementItems.Remove(item);
+			}
 		}
 
 		private void ButtonAddAd_Click(object sender, RoutedEventArgs e) {
+			Infoscreen.Logging.ToLog("Добавление нового сообщения");
 			advertisement.AdvertisementItems.Add(new Infoscreen.Advertisement.ItemAdvertisement());
 		}
 

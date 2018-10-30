@@ -16,7 +16,7 @@ namespace Infoscreen {
 		private FirebirdClient firebirdClient;
 
 		private List<string> doctors = new List<string>();
-		private int previousDay = DateTime.Now.Day;
+		private readonly int previousDay = DateTime.Now.Day;
 
 		public event EventHandler OnUpdateCompleted = delegate { };
 		public bool IsUpdateSuccessfull { get; private set; }
@@ -98,6 +98,7 @@ namespace Infoscreen {
 					currentState.Status = ItemChair.Status.Delayed;
 					break;
 				case "20":
+				case "21":
 					currentState.Status = ItemChair.Status.Underway;
 					break;
 				case "30":
@@ -141,7 +142,7 @@ namespace Infoscreen {
 				string docName = ClearDoctorName(docNames[i]);
 
 				string docPosition = docPositions[i];
-				if (docName.EndsWith("ич") && docPosition.ToLower().Contains("медицинская сестра"))
+				if (docName.TrimEnd(' ').EndsWith("ич") && docPosition.ToLower().Contains("медицинская сестра"))
 					docPosition = "Медицинский брат";
 
 				ItemChair.Employee employee = new ItemChair.Employee() {
@@ -151,10 +152,25 @@ namespace Infoscreen {
 					WorkingTime = workTime
 				};
 
+				//doctors list is using for photo search
 				if (!doctors.Contains(employee.Name))
 					doctors.Add(employee.Name);
 
-				currentState.employees.Add(employee);
+				if (currentState.employees.Where(x => x.Name.Equals(employee.Name)).Count() == 0)
+					currentState.employees.Add(employee);
+				else {
+					for (int x = 0; x < currentState.employees.Count; x++) {
+						if (currentState.employees[x].Name.Equals(employee.Name)) {
+							if (!currentState.employees[x].Department.Contains(employee.Department))
+								currentState.employees[x].Department += ", " + employee.Department;
+
+							if (!currentState.employees[x].Position.Contains(employee.Position))
+								currentState.employees[x].Position += ", " + employee.Position;
+
+							break;
+						}
+					}
+				}
 			}
 
 			itemChair.CurrentState = currentState;
@@ -288,6 +304,26 @@ namespace Infoscreen {
 			return name;
 		}
 
+		public static string ClearTimeString(string timeString) {
+			string text = string.Empty;
+			string[] timeValues = timeString.Split(new string[] { " - " }, StringSplitOptions.None);
+
+			if (timeValues.Length == 2) {
+				string partLeft = timeValues[0].TrimStart('0');
+				if (partLeft.StartsWith(":"))
+					partLeft = "0" + partLeft;
+
+				string partRight = timeValues[1].TrimStart('0');
+				if (partRight.StartsWith(":"))
+					partRight = "0" + partRight;
+
+				text = partLeft + " - " + partRight;
+			} else
+				text = timeString;
+
+			return text;
+		}
+
 		public Timetable GetTimeTable() {
 			Logging.ToLog("DataProvider - получение расписания");
 			Timetable timetable = new Timetable();
@@ -322,6 +358,11 @@ namespace Infoscreen {
 				}
 			}
 
+			if (previousDay == DateTime.Now.Day)
+				return timetable;
+
+			Logging.ToLog("DataProvider - ----- Автоматическое завершение работы");
+			Application.Current.Shutdown();
 			return timetable;
 		}
 

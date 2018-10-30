@@ -211,9 +211,11 @@ namespace InfoscreenConfigManager {
 			}
 
 			try {
-				if (Infoscreen.Configuration.SaveConfiguration(configuration))
+				if (Infoscreen.Configuration.SaveConfiguration(configuration)) {
 					MessageBox.Show(Window.GetWindow(this), "Конфигурация успешно сохранена в файл: " + configuration.ConfigFilePath,
 						"", MessageBoxButton.OK, MessageBoxImage.Information);
+					Infoscreen.Logging.ToLog("Сохранение настроек");
+				}
 				else
 					MessageBox.Show(Window.GetWindow(this), "Возникла ошибка при сохранении конфигурации в файл: " + configuration.ConfigFilePath +
 						". Подробности в журнале работы.", "", MessageBoxButton.OK, MessageBoxImage.Error);

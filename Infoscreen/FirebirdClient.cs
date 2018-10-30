@@ -24,6 +24,7 @@ namespace Infoscreen {
 					Charset = "NONE",
 					Pooling = false
 				};
+
 				connection = new FbConnection(cs.ToString());
 			}
 

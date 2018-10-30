@@ -167,8 +167,12 @@ namespace Infoscreen {
 
 		public void ShowErrorPage() {
 			TextBlockTitle.Visibility = Visibility.Hidden;
-			FrameMain.Navigate(new PageError());
 			isErrorPageShowing = true;
+
+			if (FrameMain.Content is PageError)
+				return;
+
+			FrameMain.Navigate(new PageError());
 		}
 
 		public void ClearPageIndicator() {

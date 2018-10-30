@@ -14,9 +14,9 @@ namespace Infoscreen {
 		private string chairs;
 		private MainWindow mainWindow;
 		private bool isLiveQueue;
-		private int chairUpdateIntervalInSeconds;
-		private int chairRotateIntervalInSeconds;
-		private int photoUpdateIntervalInSeconds;
+		private readonly int chairUpdateIntervalInSeconds;
+		private readonly int chairRotateIntervalInSeconds;
+		private readonly int photoUpdateIntervalInSeconds;
 		private bool isChairPagesCreationCompleted;
 		private Dictionary<PageChair, Border> chairPages;
 		private int currentPageIndex;
@@ -132,10 +132,20 @@ namespace Infoscreen {
 
 		private void NavigateToPage() {
 			PageChair pageToShow = chairPages.Keys.ToList()[currentPageIndex];
-			Logging.ToLog("MainWindow - Новое значение: " + pageToShow.ToString());
-			mainWindow.SetupTitle("Кабинет " + pageToShow.RNum);
 			chairPages[pageToShow].Background = Brushes.Gray;
 			chairPages[pageToShow].Height = 10;
+
+			if (chairPages.Keys.Where(x => x.IsReceptionConducted).Count() > 0 &&
+				!pageToShow.IsReceptionConducted) {
+				TimerChangePage_Tick(null, null);
+				return;
+			}
+
+			if (mainWindow.FrameMain.Content == pageToShow)
+				return;
+
+			Logging.ToLog("MainWindow - Новое значение: " + pageToShow.ToString());
+			mainWindow.SetupTitle("Кабинет " + pageToShow.RNum);
 			mainWindow.FrameMain.Navigate(pageToShow);
 		}
 	}

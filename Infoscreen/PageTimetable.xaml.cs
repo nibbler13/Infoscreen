@@ -38,15 +38,7 @@ namespace Infoscreen {
 
 					int column = 1;
 					foreach (KeyValuePair<string, string> schedule in docInfo.Value.timeTable) {
-						string text = string.Empty;
-						string[] timeValues = schedule.Value.Split(new string[] { " - " }, StringSplitOptions.None);
-
-						if (timeValues.Length == 2)
-							text = timeValues[0].TrimStart('0') + " - " + timeValues[1].TrimStart('0');
-						else
-							text = schedule.Value;
-
-						CreateTextBlock(text, row, column, TextBlockStyle.WorkTime);
+						CreateTextBlock(DataProvider.ClearTimeString(schedule.Value), row, column, TextBlockStyle.WorkTime);
 						column++;
 					}
 
@@ -56,12 +48,16 @@ namespace Infoscreen {
 		}
 
 		private void CreateHeader() {
+			int offsetSat = -1;
+			int offsetSun = -1;
+
 			for (int i = 0; i < 7; i++) {
 				string dayOfWeek = string.Empty;
 				DateTime dateToShow = DateTime.Now.AddDays(i);
 				switch (dateToShow.DayOfWeek) {
 					case DayOfWeek.Sunday:
 						dayOfWeek = "Вс";
+						offsetSun = i;
 						break;
 					case DayOfWeek.Monday:
 						dayOfWeek = "Пн";
@@ -80,6 +76,7 @@ namespace Infoscreen {
 						break;
 					case DayOfWeek.Saturday:
 						dayOfWeek = "Сб";
+						offsetSat = i;
 						break;
 					default:
 						break;
@@ -128,11 +125,31 @@ namespace Infoscreen {
 				}
 
 				dayOfWeek += " " + dateToShow.Day + " " + month;
+				if (i == 0)
+					dayOfWeek = "Сегодня";
+
 				CreateTextBlock(dayOfWeek, 0, i + 1, TextBlockStyle.Days);
+			}
+
+			//if (offsetSat != -1)
+			//	CreateWeekendsBackground(offsetSat);
+
+			//if (offsetSun != -1)
+			//	CreateWeekendsBackground(offsetSun);
+		}
+
+		private void CreateWeekendsBackground(int columnOffset) {
+			for (int i = 0; i < GridMain.RowDefinitions.Count; i++) {
+				Border border = new Border();
+				border.Background = new SolidColorBrush(Color.FromArgb(20, 249, 141, 60));
+				Grid.SetRow(border, i);
+				Grid.SetColumn(border, 1 + columnOffset);
+				Grid.SetZIndex(border, -1);
+				GridMain.Children.Add(border);
 			}
 		}
 
-		private void CreateTextBlock(string text, int row, int column, TextBlockStyle textBlockStyle) {
+		private TextBlock CreateTextBlock(string text, int row, int column, TextBlockStyle textBlockStyle) {
 			int columnSpan = 1;
 			HorizontalAlignment horizontalAlignment = HorizontalAlignment.Center;
 			double fontSize = Application.Current.MainWindow.ActualHeight / 35;
@@ -223,6 +240,8 @@ namespace Infoscreen {
 				GridMain.Children.Add(stackPanel);
 			} else
 				GridMain.Children.Add(textBlock);
+
+			return textBlock;
 		}
 	}
 }

@@ -37,11 +37,13 @@
                 <Border.Effect>
                     <DropShadowEffect Opacity="0.4"/>
                 </Border.Effect>
-                <TextBlock Foreground="White"
+                <Viewbox StretchDirection="DownOnly" >
+                    <TextBlock Foreground="White"
                            Text="Педиатрия"
                            x:Name="TextBlockDepartment"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"/>
+                </Viewbox>
             </Border>
 
             <Grid Grid.Row="1">
@@ -93,10 +95,9 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel VerticalAlignment="Center" 
-                            Margin="20"
-                            x:Name="StackPanelMultipleEmployees"
-                            Visibility="Hidden"/>
+                <Viewbox Margin="20" VerticalAlignment="Center" Visibility="Hidden" x:Name="ViewBoxMultipleEmployees" StretchDirection="DownOnly">
+                    <StackPanel x:Name="StackPanelMultipleEmployees"/>
+                </Viewbox>
 
                 <TextBlock VerticalAlignment="Center" 
                            Margin="20" 

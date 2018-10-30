@@ -62,6 +62,14 @@ namespace InfoscreenConfigManager {
 			SelectedChairItems = selectedChairItems;
 			SetButtonsState();
 			TextBoxFilterByRoomNumber.Focus();
+
+			Infoscreen.Logging.ToLog("Открытие окна редактирования кресел для системы: " + systemName);
+			Infoscreen.Logging.ToLog("Текущие кресла: " + string.Join(", ", selectedChairItems.Select(x => x.ChairName)));
+
+			Closed += (s, e) => {
+				Infoscreen.Logging.ToLog("Закрытие окна редактирования кресел");
+				Infoscreen.Logging.ToLog("Выбранные кресла: " + string.Join(", ", selectedChairItems.Select(x => x.ChairName)));
+			};
 		}
 
 		private void ButtonOk_Click(object sender, RoutedEventArgs e) {

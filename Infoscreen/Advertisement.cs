@@ -91,6 +91,7 @@ namespace Infoscreen {
 					advertisement.AdFilePath = adFilePath;
 					advertisement.IsReadedSuccessfully = true;
 					advertisement.CurrentAdvertisementIndex = 0;
+					advertisement.AdvertisementItemsToShow.Clear();
 
 					Random random = new Random();
 					foreach (ItemAdvertisement item in advertisement.AdvertisementItems) {
@@ -184,6 +185,7 @@ namespace Infoscreen {
 
 		public bool SaveAdvertisements(out string error) {
 			error = string.Empty;
+			AdvertisementItemsToShow.Clear();
 
 			try {
 				XmlSerializer xmlSerializer = new XmlSerializer(typeof(Advertisement));

@@ -21,6 +21,7 @@ namespace Infoscreen
 		public string RNum { get; private set; }
 		private bool isLiveQueue;
 		private DataProvider dataProvider;
+		public bool IsReceptionConducted { get; private set; } = false;
 		
         public PageChair(string chid, string rnum, bool isLiveQueue, DataProvider dataProvider) {
 			Logging.ToLog("PageChair - Создание страницы кресла, chid - " + chid + ", rnum - " + rnum);
@@ -54,10 +55,12 @@ namespace Infoscreen
 					case DataProvider.ItemChair.Status.Invitation:
 					case DataProvider.ItemChair.Status.Underway:
 					case DataProvider.ItemChair.Status.Delayed:
+						IsReceptionConducted = true;
 						ShowReceptionIsConducted(statusInfo);
 						break;
 					case DataProvider.ItemChair.Status.NotConducted:
 					default:
+						IsReceptionConducted = false;
 						ShowReceptionIsNotConducted();
 						break;
 				}
@@ -74,14 +77,15 @@ namespace Infoscreen
 		private void ShowReceptionIsConducted(DataProvider.ItemChair.StatusInfo statusInfo) {
 			TextBlockNoEmployee.Visibility = statusInfo.employees.Count == 0 ? Visibility.Visible : Visibility.Hidden;
 			StackPanelDoc.Visibility = statusInfo.employees.Count == 1 ? Visibility.Visible : Visibility.Hidden;
-			StackPanelMultipleEmployees.Visibility = statusInfo.employees.Count > 1 ? Visibility.Visible : Visibility.Hidden;
+			//StackPanelMultipleEmployees.Visibility = statusInfo.employees.Count > 1 ? Visibility.Visible : Visibility.Hidden;
+			ViewBoxMultipleEmployees.Visibility = statusInfo.employees.Count > 1 ? Visibility.Visible : Visibility.Hidden;
 
 			if (statusInfo.employees.Count == 1) {
 				DataProvider.ItemChair.Employee employee = statusInfo.employees[0];
 				TextBlockDepartment.Text = employee.Department;
 				TextBlockEmployeeName.Text = employee.Name;
 				TextBlockEmployeePosition.Text = employee.Position;
-				TextBlockWorkingTime.Text = "Приём ведётся с " + employee.WorkingTime;
+				TextBlockWorkingTime.Text = "Приём ведётся с " + DataProvider.ClearTimeString(employee.WorkingTime);
 				ImageEmployee.Source = DataProvider.GetImageForDoctor(employee.Name);
 			} else if (statusInfo.employees.Count > 1) {
 				StackPanelMultipleEmployees.Children.Clear();

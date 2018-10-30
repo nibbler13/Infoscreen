@@ -37,8 +37,8 @@
     <ApplicationIcon>Infoscreen.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FirebirdSql.Data.FirebirdClient, Version=5.12.1.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
-      <HintPath>..\packages\FirebirdSql.Data.FirebirdClient.5.12.1\lib\net452\FirebirdSql.Data.FirebirdClient.dll</HintPath>
+    <Reference Include="FirebirdSql.Data.FirebirdClient, Version=6.3.0.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
+      <HintPath>..\packages\FirebirdSql.Data.FirebirdClient.6.3.0\lib\net452\FirebirdSql.Data.FirebirdClient.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -62,6 +62,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="ChairsHandler.cs" />
+    <Compile Include="FaderFrame.cs" />
     <Compile Include="SystemMail.cs" />
     <Compile Include="SystemMailCredentials.cs" />
     <Compile Include="TimetableHandler.cs" />

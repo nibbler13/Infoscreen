@@ -21,6 +21,8 @@ namespace InfoscreenConfigManager {
 		public MainWindow() {
 			InitializeComponent();
 
+			Infoscreen.Logging.ToLog("=== Запуск приложения ConfigManager, пользователь: " + Environment.UserName);
+
 			Loaded += MainWindow_Loaded;
 		}
 
