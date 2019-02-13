@@ -12,7 +12,7 @@ namespace Infoscreen {
 	class ChairsHandler {
 		private DataProvider dataProvider;
 		private string chairs;
-		private MainWindow mainWindow;
+		private PageChairsRoot pageChairsRoot;
 		private bool isLiveQueue;
 		private readonly int chairUpdateIntervalInSeconds;
 		private readonly int chairRotateIntervalInSeconds;
@@ -21,11 +21,16 @@ namespace Infoscreen {
 		private Dictionary<PageChair, Border> chairPages;
 		private int currentPageIndex;
 
-		public ChairsHandler(DataProvider dataProvider, string chairs, bool isLiveQueue, 
-			int chairUpdateIntervalInSeconds, int chairRotateIntervalInSeconds, int photoUpdateIntervalInSeconds) {
+		public ChairsHandler(DataProvider dataProvider,
+					   string chairs,
+					   bool isLiveQueue,
+					   int chairUpdateIntervalInSeconds,
+					   int chairRotateIntervalInSeconds,
+					   int photoUpdateIntervalInSeconds,
+					   PageChairsRoot pageChairsRoot) {
 			this.dataProvider = dataProvider;
 			this.chairs = chairs;
-			mainWindow = Application.Current.MainWindow as MainWindow;
+			this.pageChairsRoot = pageChairsRoot;
 			this.isLiveQueue = isLiveQueue;
 			this.chairUpdateIntervalInSeconds = chairUpdateIntervalInSeconds;
 			this.chairRotateIntervalInSeconds = chairRotateIntervalInSeconds;
@@ -37,7 +42,7 @@ namespace Infoscreen {
 
 		public void Start() {
 			if (string.IsNullOrEmpty(chairs)) {
-				mainWindow.SetupTitle("Кабинет не выбран");
+				pageChairsRoot.SetupTitle("Кабинет не выбран");
 				Logging.ToLog("MainWindow - Не заполнен список кабинок");
 				return;
 			}
@@ -83,7 +88,7 @@ namespace Infoscreen {
 
 		private void DataProvider_OnUpdateCompleted(object sender, EventArgs e) {
 			if (!dataProvider.IsUpdateSuccessfull) {
-				mainWindow.ShowErrorPage();
+				pageChairsRoot.ShowErrorPage();
 				return;
 			}
 
@@ -93,15 +98,15 @@ namespace Infoscreen {
 			Logging.ToLog("MainWindow - Создание страниц для кресел");
 			if (dataProvider.ChairsDict.Count == 0) {
 				Logging.ToLog("MainWindow - Отсутствует информация о креслах");
-				mainWindow.SetupTitle("Кабинет не выбран");
+				pageChairsRoot.SetupTitle("Кабинет не выбран");
 				return;
 			} else {
 				foreach (DataProvider.ItemChair itemChair in dataProvider.ChairsDict.Values) {
 					PageChair pageChair = new PageChair(itemChair.ChID, itemChair.RNum, isLiveQueue, dataProvider);
 
-					Border border = MainWindow.CreateIndicator();
+					Border border = PageChairsRoot.CreateIndicator();
 					if (dataProvider.ChairsDict.Count > 1)
-						mainWindow.StackPanelPageIndicator.Children.Add(border);
+						pageChairsRoot.StackPanelPageIndicator.Children.Add(border);
 
 					chairPages.Add(pageChair, border);
 				}
@@ -141,12 +146,12 @@ namespace Infoscreen {
 				return;
 			}
 
-			if (mainWindow.FrameMain.Content == pageToShow)
+			if (pageChairsRoot.FrameMain.Content == pageToShow)
 				return;
 
 			Logging.ToLog("MainWindow - Новое значение: " + pageToShow.ToString());
-			mainWindow.SetupTitle("Кабинет " + pageToShow.RNum);
-			mainWindow.FrameMain.Navigate(pageToShow);
+			pageChairsRoot.SetupTitle("Кабинет " + pageToShow.RNum);
+			pageChairsRoot.FrameMain.Navigate(pageToShow);
 		}
 	}
 }

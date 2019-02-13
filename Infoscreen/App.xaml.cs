@@ -18,15 +18,12 @@ namespace Infoscreen {
 
 			DispatcherUnhandledException += App_DispatcherUnhandledException;
 
-			string configFilePath = string.Empty;
-			string advertisementFilePath = string.Empty;
+			string configPath = string.Empty;
 
 			if (e.Args.Length == 1) {
 				try {
-					string arg = e.Args[0].ToString().TrimStart('"').TrimEnd('"');
-					Logging.ToLog("App - Переданный параметр: " + arg);
-					configFilePath = Path.Combine(arg, "InfoscreenConfig.xml");
-					advertisementFilePath = Path.Combine(arg, "Advertisement.xml");
+					configPath = e.Args[0].ToString().TrimStart('"').TrimEnd('"');
+					Logging.ToLog("App - Переданный параметр: " + configPath);
 				} catch (Exception exc) {
 					Logging.ToLog("App - " + exc.Message + Environment.NewLine + exc.StackTrace);
 				}
@@ -34,14 +31,15 @@ namespace Infoscreen {
 				Logging.ToLog("App - приложение принимает в качестве первого параметра " +
 					"путь к файлу конфигурации, в качестве второго параметра путь к файлу с " +
 					"информационными сообщениями");
-
-			Logging.ToLog("App - путь к файлу настроек: " + configFilePath);
-			Logging.ToLog("App - путь к файлу информационных сообщений: " + advertisementFilePath);
-			MainWindow window = new MainWindow(configFilePath, advertisementFilePath);
+			
+			MainWindow window = new MainWindow(configPath);
 			window.Show();
 		}
 
 		private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e) {
+			if (Debugger.IsAttached)
+				return;
+
 			Logging.ToLog(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
 			SystemMail.SendMail(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
 			Logging.ToLog("!!!App - Аварийное завершение работы");

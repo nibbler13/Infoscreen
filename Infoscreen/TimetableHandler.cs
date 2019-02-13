@@ -11,13 +11,13 @@ using System.Windows.Threading;
 namespace Infoscreen {
 	class TimetableHandler {
 		DataProvider dataProvider;
-		MainWindow mainWindow;
+		PageChairsRoot pageChairsRoot;
 		int updateIntervalInSeconds;
 
-		public TimetableHandler(DataProvider dataProvider, int updateIntervalInSeconds) {
+		public TimetableHandler(DataProvider dataProvider, int updateIntervalInSeconds, PageChairsRoot pageChairsRoot) {
 			this.dataProvider = dataProvider;
 			this.updateIntervalInSeconds = updateIntervalInSeconds;
-			mainWindow = Application.Current.MainWindow as MainWindow;
+			this.pageChairsRoot = pageChairsRoot;
 		}
 
 		public void Start() {
@@ -32,16 +32,16 @@ namespace Infoscreen {
 
 		private async void TimerUpdateTimetable_Tick(object sender, EventArgs e) {
 			Logging.ToLog("TimetableHandler - Обновление расписания");
-			mainWindow.ClearPageIndicator();
+			pageChairsRoot.ClearPageIndicator();
 			DataProvider.Timetable timetableInitial = dataProvider.GetTimeTable();
 
 			if (timetableInitial.departments.Count == 0) {
 				Logging.ToLog("TimetableHandler - не удалось получить информацию о расписании");
-				mainWindow.ShowErrorPage();
+				pageChairsRoot.ShowErrorPage();
 				return;
 			}
 
-			mainWindow.SetupTitle("Расписание работы сотрудников");
+			pageChairsRoot.SetupTitle("Расписание работы сотрудников");
 
 			if (!(sender is DispatcherTimer dispatcherTimer))
 				return;
@@ -56,7 +56,7 @@ namespace Infoscreen {
 			try {
 				foreach (KeyValuePair<string, DataProvider.Timetable.Department> departmentPair in timetableInitial.departments) {
 					if (row >= 12) {
-						pagesTimetable.Add(new PageTimetable(timetableToShow), MainWindow.CreateIndicator());
+						pagesTimetable.Add(new PageTimetable(timetableToShow), PageChairsRoot.CreateIndicator());
 						row = 0;
 						timetableToShow.departments.Clear();
 					}
@@ -69,7 +69,7 @@ namespace Infoscreen {
 						row++;
 
 						if (row == 13) {
-							pagesTimetable.Add(new PageTimetable(timetableToShow), MainWindow.CreateIndicator());
+							pagesTimetable.Add(new PageTimetable(timetableToShow), PageChairsRoot.CreateIndicator());
 							row = 0;
 							timetableToShow.departments.Clear();
 
@@ -87,7 +87,7 @@ namespace Infoscreen {
 
 			if (pagesTimetable.Count > 1)
 				foreach (Border border in pagesTimetable.Values)
-					mainWindow.StackPanelPageIndicator.Children.Add(border);
+					pageChairsRoot.StackPanelPageIndicator.Children.Add(border);
 
 			Logging.ToLog("MainWindow - Отображение страниц расписания");
 			int currentPageIndex = 0;
@@ -96,7 +96,7 @@ namespace Infoscreen {
 					pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.Gray;
 					pagesTimetable.Values.ToList()[currentPageIndex].Height = 10;
 
-					mainWindow.FrameMain.Navigate(pagePair.Key);
+					pageChairsRoot.FrameMain.Navigate(pagePair.Key);
 					await PutTaskDelay();
 
 					pagesTimetable.Values.ToList()[currentPageIndex].Background = Brushes.LightGray;

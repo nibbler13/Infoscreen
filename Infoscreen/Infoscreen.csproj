@@ -63,6 +63,13 @@
     </ApplicationDefinition>
     <Compile Include="ChairsHandler.cs" />
     <Compile Include="FaderFrame.cs" />
+    <Compile Include="FullScreenAd.cs" />
+    <Compile Include="PageAdvertisement.xaml.cs">
+      <DependentUpon>PageAdvertisement.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageChairsRoot.xaml.cs">
+      <DependentUpon>PageChairsRoot.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SystemMail.cs" />
     <Compile Include="SystemMailCredentials.cs" />
     <Compile Include="TimetableHandler.cs" />
@@ -83,7 +90,15 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="PageAdvertisement.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PageChair.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PageChairsRoot.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
