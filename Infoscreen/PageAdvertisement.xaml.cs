@@ -19,15 +19,21 @@ namespace Infoscreen {
 	/// </summary>
 	public partial class PageAdvertisement : Page {
 		private List<string> imagesToShow;
+        private int currentImage = 0;
+
 		public PageAdvertisement(List<string> imagesToShow) {
 			InitializeComponent();
 			this.imagesToShow = imagesToShow;
 
 			IsVisibleChanged += (s, e) => {
-				Random random = new Random();
+                if (!(bool)e.NewValue)
+                    return;
 
 				try {
-					string filePath = imagesToShow[random.Next(0, imagesToShow.Count - 1)];
+                    if (currentImage == imagesToShow.Count)
+                        currentImage = 0;
+
+					string filePath = imagesToShow[currentImage++];
 					Logging.ToLog("Считывание файла: " + filePath);
 					ImageMain.Source = new BitmapImage(new Uri(filePath));
 				} catch (Exception exc) {

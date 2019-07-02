@@ -25,8 +25,6 @@ namespace InfoscreenAdvertisementManager {
 			InitializeComponent();
 			this.advertisement = advertisement;
 			DataContext = advertisement;
-			DataGridItemAdvertisement.Items.Clear();
-			DataGridItemAdvertisement.DataContext = advertisement;
 			CheckBoxDisableAdDisplay_Checked(CheckBoxDisableAdDisplay, new RoutedEventArgs());
 			Application.Current.MainWindow.Closing += MainWindow_Closing;
 			Loaded += (s, e) => { advertisement.MarkAsSaved(); };
@@ -75,6 +73,10 @@ namespace InfoscreenAdvertisementManager {
 					MessageBoxButton.OK, MessageBoxImage.Error);
 		}
 
+        private void ButtonDeleteAllAd_Click(object sender, RoutedEventArgs e) {
+
+        }
+
 		private void ButtonDeleteAd_Click(object sender, RoutedEventArgs e) {
 			MessageBoxResult result = MessageBox.Show(Application.Current.MainWindow, 
 				"Вы действительно хотите удалить выделенные строки?", "", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -85,9 +87,6 @@ namespace InfoscreenAdvertisementManager {
 			List<Infoscreen.Advertisement.ItemAdvertisement> itemsToDelete = 
 				new List<Infoscreen.Advertisement.ItemAdvertisement>();
 
-			foreach (Infoscreen.Advertisement.ItemAdvertisement item in DataGridItemAdvertisement.SelectedItems)
-				itemsToDelete.Add(item);
-
 			foreach (Infoscreen.Advertisement.ItemAdvertisement item in itemsToDelete) {
 				Infoscreen.Logging.ToLog("Удаление сообщения: " + item.Title + ", " + item.Body + ", " + item.PostScriptum);
 				advertisement.AdvertisementItems.Remove(item);
@@ -97,11 +96,7 @@ namespace InfoscreenAdvertisementManager {
 		private void ButtonAddAd_Click(object sender, RoutedEventArgs e) {
 			Infoscreen.Logging.ToLog("Добавление нового сообщения");
 			advertisement.AdvertisementItems.Add(new Infoscreen.Advertisement.ItemAdvertisement());
-		}
-
-		private void DataGridItemAdvertisement_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			ButtonDeleteAd.IsEnabled = DataGridItemAdvertisement.SelectedItems.Count > 0;
-		}
+        }
 
 		private void CheckBoxDisableAdDisplay_Checked(object sender, RoutedEventArgs e) {
 			BorderDisableAdDisplay.Background = advertisement.DisableAdDisplay ? Brushes.Yellow : Brushes.Transparent;

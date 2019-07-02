@@ -75,9 +75,17 @@ namespace Infoscreen {
 			pageChairsRoot = new PageChairsRoot(configuration, advertisement);
 			List<string> fullScreenAd = FullScreenAd.GetAvailableAd(fullScreenAdPath);
 
+            Logging.ToLog("Список изображений для показа: " + Environment.NewLine +
+                string.Join(Environment.NewLine, fullScreenAd));
+
 			if (fullScreenAd.Count > 0) {
 				int secondsRoomStatus = 60;
 				int secondsFullscreenAd = 20;
+
+                if (Debugger.IsAttached) {
+                    secondsRoomStatus = 20;
+                    secondsFullscreenAd = 5;
+                }
 
 				Logging.ToLog("Запуск таймера отображения полноэкранных информационных сообщений");
 				Logging.ToLog("Значения длительности отображения в секундах, статус кабинета - " + 
@@ -86,24 +94,24 @@ namespace Infoscreen {
 				pageAdvertisement = new PageAdvertisement(fullScreenAd);
 				timerMain = new DispatcherTimer();
 				timerMain.Interval = TimeSpan.FromSeconds(secondsRoomStatus);
-				timerMain.Tick += DispatcherTimer_Tick;
+				timerMain.Tick += TimerBackToMainWindow_Tick;
 				timerMain.Start();
 
 				timerAdShow = new DispatcherTimer();
 				timerAdShow.Interval = TimeSpan.FromSeconds(secondsFullscreenAd);
-				timerAdShow.Tick += TimerAdShow_Tick;
+				timerAdShow.Tick += TimerFullscreenAdShow_Tick;
 			}
 
 			FrameMain.Navigate(pageChairsRoot);
 		}
 
-		private void TimerAdShow_Tick(object sender, EventArgs e) {
+		private void TimerFullscreenAdShow_Tick(object sender, EventArgs e) {
 			timerAdShow.Stop();
 			timerMain.Start();
-			DispatcherTimer_Tick(timerMain, new EventArgs());
+			TimerBackToMainWindow_Tick(timerMain, new EventArgs());
 		}
 
-		private void DispatcherTimer_Tick(object sender, EventArgs e) {
+		private void TimerBackToMainWindow_Tick(object sender, EventArgs e) {
 			if (FrameMain.Content == pageChairsRoot) {
 				Logging.ToLog("Переключение на страницу полноэкранных информационных сообщений");
 				FrameMain.Navigate(pageAdvertisement);
