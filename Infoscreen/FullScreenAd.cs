@@ -39,7 +39,7 @@ namespace Infoscreen {
 						DateTime.Now.Date >= dt)
 						continue;
 
-					itemName = itemNameSplitted[0];
+					itemName = itemNameSplitted[1];
 					ItemAd itemAd = new ItemAd(item, itemName);
 					if (!availableAd.Keys.Contains(itemName)) {
 						availableAd.Add(itemName, itemAd);

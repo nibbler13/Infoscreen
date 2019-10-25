@@ -18,28 +18,14 @@ namespace Infoscreen {
 	/// Interaction logic for PageAdvertisement.xaml
 	/// </summary>
 	public partial class PageAdvertisement : Page {
-		private List<string> imagesToShow;
-        private int currentImage = 0;
-
-		public PageAdvertisement(List<string> imagesToShow) {
+		public PageAdvertisement(string imagesToShow) {
 			InitializeComponent();
-			this.imagesToShow = imagesToShow;
 
-			IsVisibleChanged += (s, e) => {
-                if (!(bool)e.NewValue)
-                    return;
-
-				try {
-                    if (currentImage == imagesToShow.Count)
-                        currentImage = 0;
-
-					string filePath = imagesToShow[currentImage++];
-					Logging.ToLog("Считывание файла: " + filePath);
-					ImageMain.Source = new BitmapImage(new Uri(filePath));
-				} catch (Exception exc) {
-					Logging.ToLog(exc.Message + Environment.NewLine + exc.StackTrace);
-				}
-			};
+			try {
+				ImageMain.Source = new BitmapImage(new Uri(imagesToShow));
+			} catch (Exception e) {
+				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
+			}
 		}
 	}
 }

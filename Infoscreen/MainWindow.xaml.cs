@@ -25,6 +25,10 @@ namespace Infoscreen {
 		private PageAdvertisement pageAdvertisement;
 		private DispatcherTimer timerMain;
 		private DispatcherTimer timerAdShow;
+		private List<string> fullScreenAdList;
+		private int secondsRoomStatus;
+		private int secondsFullscreenAd;
+		private int currentAdId = 0;
 
 		public MainWindow(string configPath) {
 			Logging.ToLog("MainWindow - Создание основного окна приложения");
@@ -73,54 +77,63 @@ namespace Infoscreen {
 				WindowState = WindowState.Maximized;
 
 			pageChairsRoot = new PageChairsRoot(configuration, advertisement);
-			List<string> fullScreenAd = FullScreenAd.GetAvailableAd(fullScreenAdPath);
+			fullScreenAdList = FullScreenAd.GetAvailableAd(fullScreenAdPath);
 
             Logging.ToLog("Список изображений для показа: " + Environment.NewLine +
-                string.Join(Environment.NewLine, fullScreenAd));
+                string.Join(Environment.NewLine, fullScreenAdList));
 
-			if (fullScreenAd.Count > 0) {
-				int secondsRoomStatus = 60;
-				int secondsFullscreenAd = 20;
+			if (fullScreenAdList.Count > 0) {
+				secondsRoomStatus = 60;
+				secondsFullscreenAd = 10;
 
                 if (Debugger.IsAttached) {
-                    secondsRoomStatus = 20;
-                    secondsFullscreenAd = 5;
-                }
+                    secondsRoomStatus = 5;
+					secondsFullscreenAd = 5;
+				}
 
 				Logging.ToLog("Запуск таймера отображения полноэкранных информационных сообщений");
 				Logging.ToLog("Значения длительности отображения в секундах, статус кабинета - " + 
 					secondsRoomStatus + ", полноэкранные информационные сообщения - " + secondsFullscreenAd);
 
-				pageAdvertisement = new PageAdvertisement(fullScreenAd);
 				timerMain = new DispatcherTimer();
 				timerMain.Interval = TimeSpan.FromSeconds(secondsRoomStatus);
-				timerMain.Tick += TimerBackToMainWindow_Tick;
+				timerMain.Tick += TimerMain_Tick;
 				timerMain.Start();
-
-				timerAdShow = new DispatcherTimer();
-				timerAdShow.Interval = TimeSpan.FromSeconds(secondsFullscreenAd);
-				timerAdShow.Tick += TimerFullscreenAdShow_Tick;
 			}
 
 			FrameMain.Navigate(pageChairsRoot);
 		}
 
-		private void TimerFullscreenAdShow_Tick(object sender, EventArgs e) {
-			timerAdShow.Stop();
-			timerMain.Start();
-			TimerBackToMainWindow_Tick(timerMain, new EventArgs());
+		private async Task PutTaskDelay() {
+			await Task.Delay(TimeSpan.FromSeconds(secondsFullscreenAd));
 		}
 
-		private void TimerBackToMainWindow_Tick(object sender, EventArgs e) {
-			if (FrameMain.Content == pageChairsRoot) {
-				Logging.ToLog("Переключение на страницу полноэкранных информационных сообщений");
+		private async void TimerMain_Tick(object sender, EventArgs e) {
+			timerMain.Stop();
+
+			Logging.ToLog("Переключение на страницу полноэкранных информационных сообщений");
+			if (Environment.MachineName.ToUpper().StartsWith("UFKK") || Debugger.IsAttached) {
+				Logging.ToLog("Изображение: " + Path.GetFileName(fullScreenAdList[currentAdId]));
+				pageAdvertisement = new PageAdvertisement(fullScreenAdList[currentAdId]);
 				FrameMain.Navigate(pageAdvertisement);
-				timerAdShow.Start();
-				timerMain.Stop();
-			} else {
-				Logging.ToLog("Переключение на страницу статуса кабинета");
-				FrameMain.Navigate(pageChairsRoot);
-			}
+
+				await PutTaskDelay();
+
+				currentAdId++;
+				if (currentAdId == fullScreenAdList.Count)
+					currentAdId = 0;
+			} else 
+				foreach (string ad in fullScreenAdList) {
+					Logging.ToLog("Изображение: " + Path.GetFileName(ad));
+					pageAdvertisement = new PageAdvertisement(ad);
+					FrameMain.Navigate(pageAdvertisement);
+
+					await PutTaskDelay();
+				}
+
+			Logging.ToLog("Переключение на страницу статуса кабинета");
+			FrameMain.Navigate(pageChairsRoot);
+			timerMain.Start();
 		}
 	}
 }

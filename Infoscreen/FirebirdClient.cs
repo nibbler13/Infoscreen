@@ -21,11 +21,12 @@ namespace Infoscreen {
 					Database = baseName,
 					UserID = user,
 					Password = pass,
-					Charset = "NONE",
+					Charset = "UTF8",
 					Pooling = false
 				};
 
-				connection = new FbConnection(cs.ToString());
+				string connectionString = cs.ToString();
+				connection = new FbConnection(connectionString);
 			}
 
 			IsConnectionOpened();
