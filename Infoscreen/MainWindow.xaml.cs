@@ -83,8 +83,10 @@ namespace Infoscreen {
                 string.Join(Environment.NewLine, fullScreenAdList));
 
 			if (fullScreenAdList.Count > 0) {
-				secondsRoomStatus = 60;
+				secondsRoomStatus = 30;
 				secondsFullscreenAd = 10;
+				Random random = new Random();
+				currentAdId = random.Next(0, fullScreenAdList.Count - 1);
 
                 if (Debugger.IsAttached) {
                     secondsRoomStatus = 5;
@@ -96,7 +98,7 @@ namespace Infoscreen {
 					secondsRoomStatus + ", полноэкранные информационные сообщения - " + secondsFullscreenAd);
 
 				timerMain = new DispatcherTimer();
-				timerMain.Interval = TimeSpan.FromSeconds(secondsRoomStatus);
+				timerMain.Interval = TimeSpan.FromSeconds(random.Next(0, secondsRoomStatus));
 				timerMain.Tick += TimerMain_Tick;
 				timerMain.Start();
 			}
@@ -109,10 +111,11 @@ namespace Infoscreen {
 		}
 
 		private async void TimerMain_Tick(object sender, EventArgs e) {
+			timerMain.Interval = TimeSpan.FromSeconds(secondsRoomStatus);
 			timerMain.Stop();
 
 			Logging.ToLog("Переключение на страницу полноэкранных информационных сообщений");
-			if (Environment.MachineName.ToUpper().StartsWith("UFKK") || Debugger.IsAttached) {
+			//if (Environment.MachineName.ToUpper().StartsWith("UFKK") || Debugger.IsAttached) {
 				Logging.ToLog("Изображение: " + Path.GetFileName(fullScreenAdList[currentAdId]));
 				pageAdvertisement = new PageAdvertisement(fullScreenAdList[currentAdId]);
 				FrameMain.Navigate(pageAdvertisement);
@@ -122,14 +125,14 @@ namespace Infoscreen {
 				currentAdId++;
 				if (currentAdId == fullScreenAdList.Count)
 					currentAdId = 0;
-			} else 
-				foreach (string ad in fullScreenAdList) {
-					Logging.ToLog("Изображение: " + Path.GetFileName(ad));
-					pageAdvertisement = new PageAdvertisement(ad);
-					FrameMain.Navigate(pageAdvertisement);
+			//} else 
+			//	foreach (string ad in fullScreenAdList) {
+			//		Logging.ToLog("Изображение: " + Path.GetFileName(ad));
+			//		pageAdvertisement = new PageAdvertisement(ad);
+			//		FrameMain.Navigate(pageAdvertisement);
 
-					await PutTaskDelay();
-				}
+			//		await PutTaskDelay();
+			//	}
 
 			Logging.ToLog("Переключение на страницу статуса кабинета");
 			FrameMain.Navigate(pageChairsRoot);

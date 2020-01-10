@@ -161,10 +161,28 @@ namespace Infoscreen {
 
 		public static bool SaveConfiguration(Configuration configuration) {
 			try {
+				if (File.Exists(configuration.ConfigFilePath)) {
+					Logging.ToLog("Удаление файла: " + configuration.ConfigFilePath);
+					File.Delete(configuration.ConfigFilePath);
+				} else {
+					Logging.ToLog("Файл не существует: " + configuration.ConfigFilePath);
+				}
+
 				XmlSerializer xmlSerializer = new XmlSerializer(typeof(Configuration));
 				TextWriter textWriter = new StreamWriter(configuration.ConfigFilePath);
 				xmlSerializer.Serialize(textWriter, configuration);
 				textWriter.Close();
+
+				//mspo-fs-02
+/*				Такой запрос не поддерживается.
+
+   в System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   в System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   в System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   в System.IO.StreamWriter.CreateFile(String path, Boolean append, Boolean checkHost)
+   в System.IO.StreamWriter..ctor(String path, Boolean append, Encoding encoding, Int32 bufferSize, Boolean checkHost)
+   в System.IO.StreamWriter..ctor(String path)
+   в Infoscreen.Configuration.SaveConfiguration(Configuration configuration)*/
 
 				return true;
 			} catch (Exception e) {
