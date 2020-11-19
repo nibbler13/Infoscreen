@@ -177,6 +177,8 @@ namespace Infoscreen {
 				return;
 			}
 
+			StackPanelAdvertisement.Visibility = Visibility.Visible;
+
 			try {
 				Advertisement.ItemAdvertisement itemAd = advertisement.GetNextAdItem();
 
@@ -195,6 +197,8 @@ namespace Infoscreen {
 			} catch (Exception exc) {
 				Logging.ToLog("MainWindow - " + exc.Message + Environment.NewLine + exc.StackTrace);
 			}
+
+			StackPanelAdvertisement.Visibility = Visibility.Hidden;
 		}
 
 

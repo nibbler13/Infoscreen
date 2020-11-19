@@ -69,21 +69,28 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="PageAdvertisementFileNotFound.xaml">
+    <Page Include="PageTextAdInfoscreenFileNotFound.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PageAdvertisementFileView.xaml">
+    <Page Include="PageTextAdInfoscreenFileView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PageFullscreenAdInfoscreen.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PageAdvertisementFileNotFound.xaml.cs">
-      <DependentUpon>PageAdvertisementFileNotFound.xaml</DependentUpon>
+    <Compile Include="PageTextAdInfoscreenFileNotFound.xaml.cs">
+      <DependentUpon>PageTextAdInfoscreenFileNotFound.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PageAdvertisementFileView.xaml.cs">
-      <DependentUpon>PageAdvertisementFileView.xaml</DependentUpon>
+    <Compile Include="PageTextAdInfoscreenFileView.xaml.cs">
+      <DependentUpon>PageTextAdInfoscreenFileView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PageFullscreenAdInfoscreen.xaml.cs">
+      <DependentUpon>PageFullscreenAdInfoscreen.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -136,6 +143,14 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="InfoscreenAdvertisementManager.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\AdFullInfoscreen.png" />
+    <Resource Include="Media\AdFullLoyaltyViewer.png" />
+    <Resource Include="Media\AdText.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Media\OpenFile_16x.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

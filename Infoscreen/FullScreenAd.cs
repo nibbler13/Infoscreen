@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace Infoscreen {
-	class FullScreenAd {
-		public static List<string> GetAvailableAd(string path) {
+	public class FullScreenAd {
+		public static List<ItemAd> GetAdItems(string path, bool onlyAvailable) {
+			Dictionary<string, ItemAd> adItems = new Dictionary<string, ItemAd>();
+
 			if (!Directory.Exists(path))
-				return new List<string>();
+				return adItems.Values.ToList();
 
 			Dictionary<string, ItemAd> availableAd = new Dictionary<string, ItemAd>();
 			List<string> advertisementsInFolder =
@@ -20,11 +25,7 @@ namespace Infoscreen {
 				Where(f => new List<string> { ".jpg", ".png" }.IndexOf(Path.GetExtension(f)) >= 0).ToList();
 
 			if (advertisementsInFolder.Count == 0)
-				return advertisementsInFolder;
-
-			double windowWidth = Application.Current.MainWindow.ActualWidth;
-			double windowHeight = Application.Current.MainWindow.ActualHeight;
-			double windowRatio = windowWidth / windowHeight;
+				return adItems.Values.ToList();
 
 			foreach (string item in advertisementsInFolder) {
 				try {
@@ -35,64 +36,156 @@ namespace Infoscreen {
 						continue;
 
 					string dateToStop = itemNameSplitted[0];
-					if (DateTime.TryParse(dateToStop, out DateTime dt) &&
-						DateTime.Now.Date >= dt)
+					if (DateTime.TryParse(dateToStop, out DateTime stopDate)) {
+						if (onlyAvailable && DateTime.Now.Date >= stopDate)
+							continue;
+					} else
 						continue;
+
+					DateTime createDate = File.GetCreationTime(item);
 
 					itemName = itemNameSplitted[1];
-					ItemAd itemAd = new ItemAd(item, itemName);
-					if (!availableAd.Keys.Contains(itemName)) {
-						availableAd.Add(itemName, itemAd);
-						continue;
-					}
+					if (!adItems.ContainsKey(itemName))
+						adItems.Add(itemName, new ItemAd(itemName, createDate, stopDate));
 
-					//Existed and new items had same ratio
-					if (Math.Abs(availableAd[itemName].Ratio - itemAd.Ratio) < 0.05) {
-						if (availableAd[itemName].SizeInPixels >= itemAd.SizeInPixels) //Existed item had bigger resolution, skip
-							continue;
-						else {
-							availableAd[itemName] = itemAd; //New item had bigger resolution, change existed item to new
-							continue;
-						}
-					}
-
-					//Existed and new items had different ratio
-
-					//New item ratio equals window ratio
-					if (Math.Abs(itemAd.Ratio - windowRatio) < 0.05) {
-						availableAd[itemName] = itemAd;
-						continue;
-					}
-
-					//Existed item ratio equals window ratio
-					if (Math.Abs(availableAd[itemName].Ratio - windowRatio) < 0.05)
-						continue;
-
-					//Existed item size had bigger resolution
-					if (availableAd[itemName].SizeInPixels >= itemAd.SizeInPixels)
-						continue;
-
-					availableAd[itemName] = itemAd;					
-				} catch (Exception) { }
+					adItems[itemName].Images.Add(new ItemImage(item));			
+				} catch (Exception e) {
+					Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace); 
+				}
 			}
 
-			return availableAd.Values.Select(x => x.FullPath).ToList();
+			return adItems.Values.ToList();
 		}
 
-		private class ItemAd {
-			public string FullPath { get; private set; }
-			public double SizeInPixels { get; private set; }
-			public double Ratio { get; private set; }
-			public string AdName { get; private set; }
+		public class ItemAd : INotifyPropertyChanged {
+			public event PropertyChangedEventHandler PropertyChanged;
+			private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+			}
 
-			public ItemAd(string fullPath, string adName) {
-				FullPath = fullPath;
-				AdName = adName;
-
-				using (Image image = Image.FromFile(FullPath)) {
-					SizeInPixels = image.Width * image.Height;
-					Ratio = (double)image.Width / (double)image.Height;
+			public Brush StopDateBackground {
+				get {
+					if (IsEnding && StopDate.Date <= DateTime.Now.Date)
+						return new SolidColorBrush(Colors.LightYellow);
+					else
+						return new SolidColorBrush(Colors.Transparent);
 				}
+            }
+			public string Name { get; set; }
+			public DateTime CreateDate { get; private set; }
+			private DateTime stopDate;
+			public DateTime StopDate { 
+				get { return stopDate; }
+				set {
+					if (value != stopDate) {
+						stopDate = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("StopDateBackground");
+                    }
+                }
+			}
+
+			private bool isEnding;
+			public bool IsEnding { 
+				get { return isEnding; }
+				set {
+					if (value != isEnding) {
+						isEnding = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("StopDateBackground");
+                    }
+                }
+			}
+
+			public string OptimalImage { get {
+					return GetOptimalImage();
+                } 
+			}
+
+			public ObservableCollection<ItemImage> Images { get; private set; } = new ObservableCollection<ItemImage>();
+
+			public ItemAd(string name, DateTime createDate, DateTime stopDate) {
+				Name = name;
+				CreateDate = createDate;
+				StopDate = stopDate;
+				IsEnding = stopDate.Year < 2100;
+            }
+
+			private string GetOptimalImage() {
+				double windowWidth = SystemParameters.PrimaryScreenWidth;
+				double windowHeight = SystemParameters.PrimaryScreenHeight;
+				double windowRatio = windowHeight / windowWidth;
+
+				ItemImage itemImage = null;
+                foreach (ItemImage image in Images) {
+					if (image.Width == windowWidth && image.Height == windowHeight) {
+						itemImage = image;
+						break;
+                    }
+
+					if (Math.Abs(image.Ratio - windowRatio) <= 0.05) {
+						if (itemImage == null) {
+							itemImage = image;
+							continue;
+						}
+
+						if (image.SizeInPixels > itemImage.SizeInPixels) {
+							itemImage = image;
+							continue;
+                        }
+					}
+				}
+
+				if (itemImage == null) {
+                    foreach (ItemImage image in Images) {
+						if (itemImage == null) {
+							itemImage = image;
+							continue;
+                        }
+
+						if (image.SizeInPixels > itemImage.SizeInPixels)
+							itemImage = image;
+                    }
+                }
+
+				return itemImage != null ? itemImage.FullPath : string.Empty;
+			}
+		}
+
+		public class ItemImage {
+			public string FullPath { get; private set; }
+			public double Width { get; private set; }
+			public double Height { get; private set; }
+
+			public string Dimensions { 
+				get {
+					return Width + "x" + Height;
+                } 
+			}
+
+			public double SizeInPixels { 
+				get {
+					return Width * Height;
+                } 
+			}
+
+			public double Ratio {
+				get {
+					return Width != 0 ? Height / Width : 0;
+				}
+			}
+			
+			public ItemImage(string fullPath) {
+				FullPath = fullPath;
+
+                try {
+					using (System.Drawing.Image image = System.Drawing.Image.FromFile(FullPath)) {
+						Width = image.Width;
+						Height = image.Height;
+					}
+				} catch (Exception e) {
+					Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
+                }
 			}
 		}
 	}

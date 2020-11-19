@@ -30,9 +30,13 @@ namespace Infoscreen {
 
 				message.To.Add(new MailAddress(MAIL_RECEIVER));
 
-				SmtpClient client = new SmtpClient(MAIL_SMTP_SERVER, 25) {
+				SmtpClient client = new SmtpClient(MAIL_SMTP_SERVER, 587) {
 					UseDefaultCredentials = false,
-					Credentials = new System.Net.NetworkCredential(USER_NAME, USER_PASSWORD, USER_DOMAIN)
+					DeliveryMethod = SmtpDeliveryMethod.Network,
+					EnableSsl = false,
+					Credentials = new System.Net.NetworkCredential(
+						USER_NAME,
+						USER_PASSWORD)
 				};
 
 				client.SendCompleted += (s, e) => {

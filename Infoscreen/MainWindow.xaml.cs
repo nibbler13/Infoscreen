@@ -24,8 +24,7 @@ namespace Infoscreen {
 		private PageChairsRoot pageChairsRoot;
 		private PageAdvertisement pageAdvertisement;
 		private DispatcherTimer timerMain;
-		private DispatcherTimer timerAdShow;
-		private List<string> fullScreenAdList;
+		private List<FullScreenAd.ItemAd> fullScreenAdList;
 		private int secondsRoomStatus;
 		private int secondsFullscreenAd;
 		private int currentAdId = 0;
@@ -37,7 +36,7 @@ namespace Infoscreen {
 
 			this.configPath = configPath;
 
-			if (Debugger.IsAttached) {
+			if (Debugger.IsAttached || Environment.MachineName.ToLower().Equals("mssu-dev")) {
 				Topmost = false;
 				Cursor = Cursors.Arrow;
 				WindowState = WindowState.Normal;
@@ -60,7 +59,7 @@ namespace Infoscreen {
 
 			Logging.ToLog("App - путь к файлу настроек: " + configFilePath);
 			Logging.ToLog("App - путь к файлу информационных сообщений: " + advertisementFilePath);
-			Logging.ToLog("App - путь к файлам полноэкранных информационных изображений: " + advertisementFilePath);
+			Logging.ToLog("App - путь к файлам полноэкранных информационных изображений: " + fullScreenAdPath);
 
 			Configuration configuration = new Configuration();
 			Advertisement advertisement = new Advertisement();
@@ -77,7 +76,7 @@ namespace Infoscreen {
 				WindowState = WindowState.Maximized;
 
 			pageChairsRoot = new PageChairsRoot(configuration, advertisement);
-			fullScreenAdList = FullScreenAd.GetAvailableAd(fullScreenAdPath);
+			fullScreenAdList = FullScreenAd.GetAdItems(fullScreenAdPath, true);
 
             Logging.ToLog("Список изображений для показа: " + Environment.NewLine +
                 string.Join(Environment.NewLine, fullScreenAdList));
@@ -115,24 +114,15 @@ namespace Infoscreen {
 			timerMain.Stop();
 
 			Logging.ToLog("Переключение на страницу полноэкранных информационных сообщений");
-			//if (Environment.MachineName.ToUpper().StartsWith("UFKK") || Debugger.IsAttached) {
-				Logging.ToLog("Изображение: " + Path.GetFileName(fullScreenAdList[currentAdId]));
-				pageAdvertisement = new PageAdvertisement(fullScreenAdList[currentAdId]);
-				FrameMain.Navigate(pageAdvertisement);
+			Logging.ToLog("Изображение: " + Path.GetFileName(fullScreenAdList[currentAdId].OptimalImage));
+			pageAdvertisement = new PageAdvertisement(fullScreenAdList[currentAdId].OptimalImage);
+			FrameMain.Navigate(pageAdvertisement);
 
-				await PutTaskDelay();
+			await PutTaskDelay();
 
-				currentAdId++;
-				if (currentAdId == fullScreenAdList.Count)
-					currentAdId = 0;
-			//} else 
-			//	foreach (string ad in fullScreenAdList) {
-			//		Logging.ToLog("Изображение: " + Path.GetFileName(ad));
-			//		pageAdvertisement = new PageAdvertisement(ad);
-			//		FrameMain.Navigate(pageAdvertisement);
-
-			//		await PutTaskDelay();
-			//	}
+			currentAdId++;
+			if (currentAdId == fullScreenAdList.Count)
+				currentAdId = 0;
 
 			Logging.ToLog("Переключение на страницу статуса кабинета");
 			FrameMain.Navigate(pageChairsRoot);

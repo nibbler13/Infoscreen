@@ -186,6 +186,7 @@ namespace Infoscreen {
 					Directory.CreateDirectory(localDoctorPhotosPath);
 				} catch (Exception e) {
 					Logging.ToLog("DataProvider - " + e.Message + Environment.NewLine + e.StackTrace);
+					return;
 				}
 			}
 
@@ -202,6 +203,7 @@ namespace Infoscreen {
 				Logging.ToLog("DataProvider - Найдено фотографий: " + photos.Length);
 			} catch (Exception e) {
 				Logging.ToLog("DataProvider - " + e.Message + Environment.NewLine + e.StackTrace);
+				return;
 			}	
 			
 			foreach (string doctor in doctors) {
@@ -239,6 +241,12 @@ namespace Infoscreen {
 
 		public static BitmapImage GetImageForDoctor(string name) {
 			Logging.ToLog("DataProvider - Поиск фото для сотрудника: " + name);
+			string defaultImage = "pack://application:,,,/Infoscreen;component/Media/DoctorWithoutAPhoto.png";
+
+			if (!Directory.Exists(localDoctorPhotosPath)) {
+				Logging.ToLog("Не удается найти \\ получить доступ к папке: " + localDoctorPhotosPath);
+				return GetBitmapFromFile(defaultImage);
+			}
 
 			try {
 				string[] files = Directory.GetFiles(localDoctorPhotosPath, "*.jpg");
@@ -257,7 +265,7 @@ namespace Infoscreen {
 				Logging.ToLog(e.Message + Environment.NewLine + e.StackTrace);
 			}
 
-			return GetBitmapFromFile("pack://application:,,,/Infoscreen;component/Media/DoctorWithoutAPhoto.png");
+			return GetBitmapFromFile(defaultImage);
 		}
 
 		public static BitmapImage GetImageForDepartment(string depname) {

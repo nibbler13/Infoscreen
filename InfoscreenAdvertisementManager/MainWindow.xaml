@@ -7,40 +7,107 @@
         mc:Ignorable="d"
         Title="Управление информационными сообщениями"
         Height="600" 
-        Width="1280"
-        MinWidth="1280"
+        Width="1400"
+        MinWidth="1400"
         MinHeight="800"
         WindowStartupLocation="CenterScreen" 
         Icon="InfoscreenAdvertisementManager.ico"
-        Background="#FFE0E0E0">
+        Background="#FFF0F0F0">
     <Grid Margin="10">
-        <TabControl Margin="0,10,0,0" 
-                    Background="#FFFAFAFA">
-            <TabItem Header="Бегущая строка на мониторах над кабинетами">
-                <Grid Margin="10">
-                    <TextBlock x:Name="TextBlockMain"
-                               VerticalAlignment="Center"
-                               HorizontalAlignment="Center"
-                               TextWrapping="Wrap"/>
-
-                    <Frame x:Name="FrameMain"
-                           NavigationUIVisibility="Hidden"
-                           Visibility="Hidden"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Полноэкранные сообщения на мониторах над кабинетами"
-                     Background="#FFFAFAFA"/>
-            <TabItem Header="Полноэкранные сообщения на индикаторах лояльности"
-                     Background="#FFFAFAFA"/>
-        </TabControl>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="6"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        
         <StackPanel Orientation="Horizontal" 
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Top">
             <TextBlock Text="Выбранный филиал:" 
-                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
                        Margin="0,0,10,0"/>
-            <ComboBox Width="100" HorizontalAlignment="Center"/>
+            <ComboBox Width="150" 
+                      Foreground="DarkBlue"
+                      FontWeight="Bold"
+                      HorizontalAlignment="Center"
+                      ItemsSource="{Binding Filials, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      SelectedItem="{Binding SelectedFilial, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
+
+        <TabControl Background="#FFFAFAFA"
+                    TabStripPlacement="Left"
+                    Grid.Row="2">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Margin="4">
+                        <Image Source="Media/AdText.png"
+                               MaxWidth="70"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="Бегущая строка&#x0a;InfoScreen"
+                               TextAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+
+                <Grid Margin="10">
+                    <Frame x:Name="FrameTextAdInfoscreen"
+                           Visibility="Hidden"
+                           NavigationUIVisibility="Hidden"
+                           Navigated="Frame_Navigated"/>
+
+                    <TextBlock x:Name="TextBlockTextAdInfoscreen"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Margin="4">
+                        <Image Source="Media/AdFullInfoscreen.png" 
+                               MaxWidth="70"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="Слайды&#x0a;InfoScreen"
+                               TextAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+
+                <Grid Margin="10">
+                    <Frame x:Name="FrameFullscreenAdInfoscreen"
+                           Visibility="Hidden"
+                           NavigationUIVisibility="Hidden"
+                           Navigated="Frame_Navigated"/>
+
+                    <TextBlock x:Name="TextBlockFullscreenAdInfoscreen"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Margin="4">
+                        <Image Source="Media/AdFullLoyaltyViewer.png" 
+                               MaxWidth="70"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                        <TextBlock Text="Слайды&#x0a;LoyaltyViewer"
+                               TextAlignment="Center"/>
+                    </StackPanel>
+                </TabItem.Header>
+
+
+                <Grid Margin="10">
+                    <Frame x:Name="FrameFullscreenAdLoyaltyViewer"
+                           Visibility="Hidden"
+                           NavigationUIVisibility="Hidden"/>
+
+                    <TextBlock x:Name="TextBlockFullscreenAdLoyaltyViewer"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

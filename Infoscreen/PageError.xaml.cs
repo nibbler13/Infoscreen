@@ -13,15 +13,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Infoscreen
-{
+namespace Infoscreen {
     /// <summary>
     /// Логика взаимодействия для PageError.xaml
     /// </summary>
-    public partial class PageError : Page
-    {
-        public PageError()
-        {
+    public partial class PageError : Page {
+        public PageError() {
             InitializeComponent();
         }
     }

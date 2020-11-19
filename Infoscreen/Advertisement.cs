@@ -83,10 +83,10 @@ namespace Infoscreen {
 			try {
 				using (FileStream fileStream = new FileStream(adFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
 					XmlSerializer xmlSerializer = new XmlSerializer(typeof(Advertisement));
-					xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog(e.ExpectedAttributes); };
-					xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog(e.ExpectedElements); };
-					xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog(e.Name); };
-					xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog(e.UnreferencedId); };
+					xmlSerializer.UnknownAttribute += (s, e) => { Logging.ToLog("UnknownAttribute: " + e.ExpectedAttributes); };
+					xmlSerializer.UnknownElement += (s, e) => { Logging.ToLog("UnknownElement: " + e.ExpectedElements); };
+					xmlSerializer.UnknownNode += (s, e) => { Logging.ToLog("UnknownNode: " + e.Name); };
+					xmlSerializer.UnreferencedObject += (s, e) => { Logging.ToLog("UnreferencedObject: " + e.UnreferencedId); };
 					advertisement = (Advertisement)xmlSerializer.Deserialize(fileStream);
 					advertisement.AdFilePath = adFilePath;
 					advertisement.IsReadedSuccessfully = true;
@@ -94,8 +94,10 @@ namespace Infoscreen {
 					advertisement.AdvertisementItemsToShow.Clear();
 
 					Random random = new Random();
+					int index = 1;
 					foreach (ItemAdvertisement item in advertisement.AdvertisementItems) {
 						item.OrderNumber = random.Next(0, 1000);
+						item.Index = index++;
 
 						if (item.SetDateBegin && item.DateBegin.HasValue && DateTime.Now < item.DateBegin.Value)
 							continue;
@@ -210,7 +212,7 @@ namespace Infoscreen {
 
 		public ItemAdvertisement GetNextAdItem() {
 			if (AdvertisementItemsToShow.Count == 0)
-				return new ItemAdvertisement();
+				return new ItemAdvertisement(0);
 
 			CurrentAdvertisementIndex++;
 			if (CurrentAdvertisementIndex == AdvertisementItemsToShow.Count)
@@ -225,12 +227,26 @@ namespace Infoscreen {
 			public event PropertyChangedEventHandler PropertyChanged;
 			private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") {
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-				HasChanged = true;
+
+				if (!propertyName.ToLower().Contains("count"))
+					HasChanged = true;
 			}
 
 			public const string TITLE_TEMPLATE = "Заголовок";
 			public const string BODY_TEMPLATE = "Основной текст";
 			public const string POSTSCRIPTUM_TEMPLATE = "Постскриптум";
+
+
+			private int index;
+			public int Index {
+				get { return index; }
+				set {
+					if (value != index) {
+						index = value;
+						NotifyPropertyChanged();
+                    }
+                }
+			}
 
 
 			private bool displayTitle = true;
@@ -269,6 +285,7 @@ namespace Infoscreen {
 					if (value != setDateBegin) {
 						setDateBegin = value;
 						NotifyPropertyChanged();
+						NotifyPropertyChanged("BackgroundDateBegin");
 					}
 				}
 			}
@@ -280,6 +297,7 @@ namespace Infoscreen {
 					if (value != setDateEnd) {
 						setDateEnd = value;
 						NotifyPropertyChanged();
+						NotifyPropertyChanged("BackgroundDateEnd");
 					}
 				}
 			}
@@ -320,8 +338,29 @@ namespace Infoscreen {
 				}
 			}
 
-			public DateTime? DateBegin { get; set; } = null;
-			public DateTime? DateEnd { get; set; } = null;
+			private DateTime? dateBegin;
+			public DateTime? DateBegin {
+				get { return dateBegin; }
+				set {
+					if (value != dateBegin) {
+						dateBegin = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("BackgroundDateBegin");
+                    }
+                }
+			}
+
+			private DateTime? dateEnd;
+			public DateTime? DateEnd { 
+				get { return dateEnd; }
+				set {
+					if (value != dateEnd) {
+						dateEnd = value;
+						NotifyPropertyChanged();
+						NotifyPropertyChanged("BackgroundDateEnd");
+					}
+                }
+			}
 
 			private int maxLenghtTitle = 40;
 			public int MaxLenghtTitle {
@@ -425,8 +464,31 @@ namespace Infoscreen {
 			public string DateCreated { get; set; }
 			public bool HasChanged = false;
 
+
+			public Brush BackgroundDateBegin {
+				get {
+					if (SetDateBegin && (DateBegin.HasValue && DateBegin.Value.Date > DateTime.Now.Date))
+						return new SolidColorBrush(Colors.LightYellow);
+					else
+						return new SolidColorBrush(Colors.Transparent);
+				}
+			}
+
+			public Brush BackgroundDateEnd {
+				get {
+					if (SetDateEnd && (DateEnd.HasValue && DateEnd.Value.Date <= DateTime.Now.Date))
+						return new SolidColorBrush(Colors.LightYellow);
+					else
+						return new SolidColorBrush(Colors.Transparent);
+				}
+			}
+
 			public ItemAdvertisement() {
 				DateCreated = DateTime.Now.ToLongDateString() + " " + DateTime.Now.ToShortTimeString();
+			}
+
+			public ItemAdvertisement(int index) : this() {
+				Index = index;
 			}
 		}
 	}
